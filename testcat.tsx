@@ -1,9 +1,10 @@
-// "use client"
+"use client"
 
 import { useState } from "react"
 import { cn } from "@/lib/utils"
 import Book from "./Book"
 import { Product } from "@/types/books"
+
 
 interface ShopByCategoryProps {
   categories: string[]
@@ -13,20 +14,10 @@ interface ShopByCategoryProps {
 
 export default function ShopByCategory({ categories, categoryBooks, header }: ShopByCategoryProps) {
   const [activeCategory, setActiveCategory] = useState(categories[0] || "")
-  const [showAll, setShowAll] = useState(false)
 
   const handleCategoryChange = (category: string) => {
-    if (category === activeCategory) {
-      setShowAll((prev) => !prev) // toggle showAll on second click
-    } else {
-      setActiveCategory(category)
-      setShowAll(false) // reset showAll when switching category
-    }
+    setActiveCategory(category)
   }
-
-  const booksToDisplay = showAll
-    ?  categoryBooks[activeCategory] || []
-    :  categoryBooks[activeCategory]?.slice(0, 4)  || []
 
   return (
     <section className="py-16 bg-gray-50">
@@ -53,22 +44,20 @@ export default function ShopByCategory({ categories, categoryBooks, header }: Sh
 
         {/* Books Grid */}
         <div className="grid grid-cols-1 sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-          {booksToDisplay.map((book) => (
+          {categoryBooks[activeCategory]?.map((book) => (
             <Book key={book.id} product={book} />
           ))}
         </div>
 
         {/* View All Button */}
-        {categoryBooks[activeCategory]?.length > 4 && !showAll && (
-          <div className="text-center mt-10">
-            <button
-              onClick={() => setShowAll(true)}
-              className="inline-flex items-center justify-center py-2 px-6 font-medium text-white bg-orange-600 rounded-md hover:bg-orange-700 transition-colors"
-            >
-              View All {activeCategory.replace(/-/g, " ")} Books
-            </button>
-          </div>
-        )}
+        <div className="text-center mt-10">
+          <a
+            href={`/category/${activeCategory}`}
+            className="inline-flex items-center justify-center py-2 px-6 font-medium text-white bg-orange-600 rounded-md hover:bg-orange-700 transition-colors"
+          >
+            View All {activeCategory.replace(/-/g, " ")} Books
+          </a>
+        </div>
       </div>
     </section>
   )

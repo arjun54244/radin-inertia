@@ -1,8 +1,8 @@
-"use client";
-import { useCart } from "@/contexts/CartContext";
-import { useAuth } from "@/contexts/AuthContext";
-import { useRouter } from "next/navigation";
+
+import { useCart } from "@/hooks/useCart";
+import { router, usePage } from "@inertiajs/react";
 import { toast } from "react-hot-toast";
+import { SharedData } from "@/types";
 
 interface AddToCartButtonProps {
   product: {
@@ -15,13 +15,12 @@ interface AddToCartButtonProps {
 
 const AddToCartButton = ({ product }: AddToCartButtonProps) => {
   const { addToCart } = useCart();
-  const { user } = useAuth();
-  const router = useRouter();
+  const { auth } = usePage<SharedData>().props;
 
   const handleAddToCart = async () => {
-    if (!user) {
+    if (!auth?.user) {
       toast.error("Please login to add items to cart");
-      router.push("/login");
+      router.visit("/login");
       return;
     }
 
@@ -30,6 +29,7 @@ const AddToCartButton = ({ product }: AddToCartButtonProps) => {
       toast.success("Item added to cart");
     } catch (error) {
       console.error("Failed to add item to cart:", error);
+      toast.error("Something went wrong. Try again.");
     }
   };
   

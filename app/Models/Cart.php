@@ -6,6 +6,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Support\Facades\DB;
 
 class Cart extends Model
 {
@@ -126,7 +127,7 @@ class Cart extends Model
      */
     public function updateTotalPrice(): void
     {
-        $this->total_price = $this->items()->sum(\DB::raw('quantity * price'));
+        $this->total_price = $this->items()->sum(DB::raw('quantity * price'));
         $this->save();
     }
 }

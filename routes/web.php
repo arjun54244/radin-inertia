@@ -63,14 +63,13 @@ Route::middleware('auth:sanctum')->group(function () {
 });
 
 // Cart Routes
-Route::middleware('auth:sanctum')->group(function () {
-    Route::get('/v1/cart', [CartController::class, 'index']);
-    Route::post('/v1/cart/products/{product}', [CartController::class, 'addItem']);
-    Route::put('/v1/cart/products/{product}', [CartController::class, 'updateItem']);
-    Route::delete('/v1/cart/products/{product}', [CartController::class, 'removeItem']);
-    Route::delete('/v1/cart', [CartController::class, 'clear']);
-});
-
+// Route::middleware('auth:sanctum')->group(function () {
+    // Route::get('/cart', [CartController::class, 'index']);
+    // Route::post('/cart/add/{product}', [CartController::class, 'addItem']);
+    // Route::put('/cart/update/{product}', [CartController::class, 'updateItem']);
+    // Route::delete('/cart/remove/{product}', [CartController::class, 'removeItem']);
+    // Route::delete('/cart/clear', [CartController::class, 'clear']);
+// });
 //404 Route
 Route::fallback( function (){
     return Inertia::render('notfound');

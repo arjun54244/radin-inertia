@@ -30,13 +30,13 @@ class CategoryResource extends Resource
     {
         return $form
             ->schema([
-                Forms\Components\Group::make()
+               Forms\Components\Group::make()
                     ->schema([
                         Forms\Components\Section::make([
                             Forms\Components\TextInput::make('name')
                                 ->required()
                                 ->live(onBlur: true)
-                                ->unique()
+                                // ->unique()
                                 ->afterStateUpdated(function(string $operation, $state, Forms\Set $set) {
                                     if ($operation !== 'create') {
                                         return;
@@ -49,7 +49,7 @@ class CategoryResource extends Resource
                                 ->disabled()
                                 ->dehydrated()
                                 ->required()
-                                ->unique(Product::class, 'slug', ignoreRecord: true),
+                                ->unique(ignoreRecord: true),
 
                             Forms\Components\MarkdownEditor::make('description')
                                 ->columnSpanFull()

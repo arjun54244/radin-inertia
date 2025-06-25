@@ -2,7 +2,6 @@
 
 import { ReactNode } from 'react';
 import { AuthProvider } from '@/contexts/AuthContext';
-import { CartProvider } from '@/contexts/CartContext';
 
 interface ProvidersProps {
   children: ReactNode;
@@ -11,9 +10,7 @@ interface ProvidersProps {
 export default function Providers({ children }: ProvidersProps) {
   return (
     <AuthProvider>
-      <CartProvider>
         {children}
-      </CartProvider>
     </AuthProvider>
   );
 } 

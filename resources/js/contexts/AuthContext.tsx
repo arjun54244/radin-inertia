@@ -1,16 +1,9 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import axios from 'axios';
-import { router } from '@inertiajs/react';
+import { router, usePage } from '@inertiajs/react';
+import { SharedData, User } from '@/types';
 
-interface User {
-  id: number;
-  name: string;
-  email: string;
-  phone: string;
-  avatar: string;
-  created_at: string;
-  updated_at: string;
-}
+const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 interface AuthContextType {
   user: User | null;
@@ -20,16 +13,14 @@ interface AuthContextType {
   checkAuth: () => Promise<void>;
 }
 
-const AuthContext = createContext<AuthContextType | undefined>(undefined);
-
 export function AuthProvider({ children }: { children: React.ReactNode }) {
+  const { auth } = usePage<SharedData>().props; 
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
   const checkAuth = async () => {
     try {
-      const response = await axios.get('/api/user');
-      setUser(response.data);
+      setUser(auth?.user || null); 
     } catch (error) {
       console.error('Failed to check authentication:', error);
       setUser(null);
@@ -40,16 +31,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const login = async (email: string, password: string) => {
     try {
-      // Get CSRF cookie
       await axios.get('/sanctum/csrf-cookie');
-
-      // Login request
       await axios.post('/login', { email, password });
-
-      // Fetch user info
       await checkAuth();
-
-      router.visit('/dashboard'); // or wherever you'd like to redirect
+      router.visit('/dashboard');
     } catch (error) {
       console.error('Login failed:', error);
       throw error;

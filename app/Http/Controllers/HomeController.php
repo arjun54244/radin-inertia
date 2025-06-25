@@ -28,7 +28,7 @@ class HomeController extends Controller
             return $testimonial;
         });
 
-
+        //Shop By Category
         $targetCategories = [
             "JNV-Sainik-RMS",
             "Books-All-Competitions",
@@ -39,26 +39,59 @@ class HomeController extends Controller
         ];
 
         // Get the matching categories by name
-        // $categories = Category::whereIn('name', $targetCategories)->get();
+        $categories = Category::whereIn('name', $targetCategories)->get();
 
-        // $categoryBooks = [];
+        $categoryBooks = [];
 
-        // foreach ($categories as $category) {
-        //     $name = $category->name;
-        //     $categoryId = $category->id;
+        foreach ($categories as $category) {
+            $name = $category->name;
+            $categoryId = $category->id;
 
-        //     // Search for products where JSON 'categories' includes an object with matching category_id
-        //     $products = Product::whereJsonContains('categories', [['category_id' => (string) $categoryId]])
-        //         ->get();
+            // Search for products where JSON 'categories' includes an object with matching category_id
+            $products = Product::whereJsonContains('categories', [['category_id' => (string) $categoryId]])
+                ->get();
 
-        //     $categoryBooks[$name] = $products;
-        // }
+            $categoryBooks[$name] = $products;
+        }
+
+        //Shop By State
+        $targetState = ["UP", "Haryana", "Bihar", "Rajasthan", "MP", "Delhi", "Uttarakhand"];
+        $states = Category::whereIn('name', $targetState)->get();
+        $stateBooks = [];
+        foreach ($states as $state) {
+            $name = $state->name;
+            $categoryId = $state->id;
+            $products = Product::whereJsonContains('categories', [['category_id' => (string) $categoryId]])->get();
+            $stateBooks[$name] = $products;
+        }
+
+        // Shop By popular books 
+        $tergetLatestBooks = ["Best Seller", "Latest Release", "Most Purchased", "On Sale"];
+        $latestBooks = Category::whereIn('name', $tergetLatestBooks)->get();
+        $latestBooksArray = [];
+        foreach ($latestBooks as $book) {
+            $name = $book->name;
+            $categoryId = $book->id;
+            $products = Product::whereJsonContains('categories', [['category_id' => (string) $categoryId]])->get();
+            $latestBooksArray[$name] = $products;
+        }
+
+        // youtube
+        $youtubeVideoIds = \App\Models\YouTube::where('is_active', true)
+            ->pluck('video_id')
+            ->toArray();
+            // dd($youtubeVideoIds);
 
         return Inertia::render('home', [
             'banners' => $banners,
             'testimonials' => $testimonials,
             'categoriesShopByCategories' => $targetCategories,
-            // 'categoryBooksShopByCategories' => $categoryBooks,
+            'categoryBooksShopByCategories' => $categoryBooks,
+            'categoriesShopByState' => $targetState,
+            'categoryBooksShopByState' => $stateBooks,
+            'latestBooks' => $tergetLatestBooks,
+            'latestBooksArray' => $latestBooksArray,
+            'youtubeVideoIds' => $youtubeVideoIds,
         ]);
     }
 }

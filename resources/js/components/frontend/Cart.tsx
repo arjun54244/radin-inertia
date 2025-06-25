@@ -1,8 +1,8 @@
 "use client";
-import { useCart } from "@/contexts/CartContext";
 import { useState } from "react";
 import { Trash2, Plus, Minus } from "lucide-react";
-import Link from "next/link";
+import {Link} from "@inertiajs/react";
+import { useCart } from "@/hooks/useCart";
 
 export default function Cart() {
     const { items, totalPrice, discountedTotal, isLoading, updateQuantity, removeFromCart, clearCart } = useCart();
@@ -90,7 +90,7 @@ export default function Cart() {
                                         <td className="p-4">
                                             <div className="flex items-center">
                                                 <img 
-                                                    src={`${process.env.NEXT_PUBLIC_API_URL}/storage/${item.product.images[0]}`} 
+                                                    src={`${import.meta.env.NEXT_PUBLIC_API_URL}/storage/${item.product.images[0]}`} 
                                                     alt={item.product.name} 
                                                     className="w-16 h-16 object-cover rounded"
                                                 />

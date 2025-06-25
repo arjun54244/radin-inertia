@@ -51,7 +51,7 @@ class ProductResource extends Resource
 
     public static function getGloballySearchableAttributes(): array
     {
-        return ['name', 'slug', 'description'];
+        return ['name', 'sku', 'isbn'];
     }
 
     public static function getGlobalSearchResultDetails(Model $record): array
@@ -280,18 +280,19 @@ class ProductResource extends Resource
     {
         return $table
             ->columns([
+                Tables\Columns\TextColumn::make('sku')->searchable(),
                 Tables\Columns\ImageColumn::make('images.0')
                     ->label('Image')
                     ->circular(),
 
                 Tables\Columns\TextColumn::make('name')
                     ->searchable()
+                    ->limit(30)
                     ->sortable(),
 
-                Tables\Columns\TextColumn::make('brand.name')
-                    ->searchable()
-                    ->sortable()
-                    ->toggleable(),
+                // Tables\Columns\TextColumn::make('brand.name')
+                //     ->sortable()
+                //     ->toggleable(),
 
                 Tables\Columns\IconColumn::make('is_visible')
                     ->sortable()
@@ -310,8 +311,6 @@ class ProductResource extends Resource
                 Tables\Columns\TextColumn::make('published_at')
                     ->date()
                     ->sortable(),
-
-                Tables\Columns\TextColumn::make('type')
             ])
             ->filters([
                 Tables\Filters\TernaryFilter::make('is_visible')

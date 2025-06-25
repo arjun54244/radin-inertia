@@ -9,7 +9,6 @@ interface BookDetailPageProps {
 }
 
 export default function BookDetails({ book }: BookDetailPageProps) {
-  console.log(book);
   const sliderSettings = {
     dots: true,
     infinite: true,

@@ -19,7 +19,7 @@ export default function SsoLoginButton({
   const handleSsoLogin = async () => {
     try {
       setIsLoading(true);
-      const redirectUrl = `${process.env.NEXT_PUBLIC_API_URL}/auth/workos/redirect?redirect=${encodeURIComponent(redirectPath)}`;
+      const redirectUrl = `${import.meta.env.NEXT_PUBLIC_API_URL}/auth/workos/redirect?redirect=${encodeURIComponent(redirectPath)}`;
       window.location.href = redirectUrl;
     } catch (error) {
       console.error("SSO login error:", error);

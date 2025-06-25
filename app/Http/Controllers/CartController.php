@@ -13,212 +13,136 @@ use Illuminate\Support\Facades\Validator;
 
 class CartController extends Controller
 {
-    /**
-     * Display the user's cart.
-     *
-     * @return \Illuminate\Http\JsonResponse
-     */
     public function index()
     {
-        $user = Auth::user();
-        
-        // Get or create cart for the user
-        $cart = Cart::firstOrCreate(
-            ['user_id' => $user->id],
-            ['total_price' => 0]
-        );
-        
-        // Load cart items with products
-        $cart->load(['items.product' => function ($query) {
-            $query->select('id', 'name', 'discounted_price', 'price', 'images');
-        }]);
-        
-        
-        return response()->json([
-            'status' => 'success',
-            'data' => $cart->items
-        ]);
+        if (Auth::check()) {
+            $user = Auth::user();
+            $cart = Cart::firstOrCreate(['user_id' => $user->id]);
+            $cart->load(['items.product:id,name,discounted_price,price,images']);
+
+            return response()->json(['status' => 'success', 'data' => $cart->items]);
+        }
+
+        return response()->json(['status' => 'success', 'data' => session('guest_cart', [])]);
     }
-    
-    /**
-     * Add a product to the cart.
-     *
-     * @param  \Illuminate\Http\Request  $request
-     * @param  int  $product
-     * @return \Illuminate\Http\JsonResponse
-     */
-    public function addItem(Request $request, $product)
+
+    public function addItem(Request $request, $productId)
     {
         $validator = Validator::make($request->all(), [
             'quantity' => 'required|integer|min:1',
         ]);
-        
+
         if ($validator->fails()) {
-            return response()->json([
-                'status' => 'error',
-                'message' => 'Validation failed',
-                'errors' => $validator->errors()
-            ], 422);
+            return response()->json(['status' => 'error', 'errors' => $validator->errors()], 422);
         }
-        
-        $user = Auth::user();
-        $product = Product::findOrFail($product);
-        
-        // Get or create cart for the user
-        $cart = Cart::firstOrCreate(
-            ['user_id' => $user->id],
-            ['total_price' => 0]
-        );
-        
-        // Check if product already exists in cart
-        $cartItem = $cart->items()->where('product_id', $product->id)->first();
-        
-        if ($cartItem) {
-            // Update quantity if product already exists
-            $cartItem->quantity += $request->quantity;
-            $cartItem->save();
+
+        $product = Product::select('id', 'name', 'price', 'discounted_price', 'images')->findOrFail($productId);
+        $quantity = $request->input('quantity', 1);
+
+        if (Auth::check()) {
+            $user = Auth::user();
+            $cart = Cart::firstOrCreate(['user_id' => $user->id]);
+            $cart->addItem($product, $quantity);
+            $cart->updateTotalPrice();
+            $cart->load(['items.product']);
+
+            return response()->json(['status' => 'success', 'data' => $cart->items]);
+        }
+
+        $guestCart = collect(session('guest_cart', []));
+
+        $existing = $guestCart->firstWhere('product_id', $product->id);
+
+        if ($existing) {
+            $guestCart = $guestCart->map(function ($item) use ($product, $quantity) {
+                if ($item['product_id'] === $product->id) {
+                    $item['quantity'] += $quantity;
+                }
+                return $item;
+            });
         } else {
-            // Create new cart item
-            $cart->items()->create([
+            $guestCart->push([
                 'product_id' => $product->id,
-                'quantity' => $request->quantity,
+                'quantity' => $quantity,
                 'price' => $product->price,
                 'discounted_price' => $product->discounted_price,
+                'product' => $product,
             ]);
         }
-        
-        // Update cart total price
-        $this->updateCartTotalPrice($cart);
-        
-        // Load cart items with products
-        $cart->load(['items.product' => function ($query) {
-            $query->select('id', 'name', 'discounted_price', 'price', 'images');
-        }]);
-        
-        return response()->json([
-            'status' => 'success',
-            'message' => 'Product added to cart',
-            'data' => $cart->items
-        ]);
+
+        session(['guest_cart' => $guestCart->values()->toArray()]);
+
+        return response()->json(['status' => 'success', 'data' => $guestCart->values()->toArray()]);
     }
-    
-    /**
-     * Update a cart item.
-     *
-     * @param  \Illuminate\Http\Request  $request
-     * @param  int  $product
-     * @return \Illuminate\Http\JsonResponse
-     */
-    public function updateItem(Request $request, $product)
+
+    public function updateItem(Request $request, $productId)
     {
         $validator = Validator::make($request->all(), [
             'quantity' => 'required|integer|min:1',
         ]);
-        
+
         if ($validator->fails()) {
-            return response()->json([
-                'status' => 'error',
-                'message' => 'Validation failed',
-                'errors' => $validator->errors()
-            ], 422);
+            return response()->json(['status' => 'error', 'errors' => $validator->errors()], 422);
         }
-        
-        $user = Auth::user();
-        $product = Product::findOrFail($product);
-        
-        // Get user's cart
-        $cart = Cart::where('user_id', $user->id)->firstOrFail();
-        
-        // Find cart item
-        $cartItem = $cart->items()->where('product_id', $product->id)->firstOrFail();
-        
-        // Update quantity
-        $cartItem->quantity = $request->quantity;
-        $cartItem->save();
-        
-        // Update cart total price
-        $this->updateCartTotalPrice($cart);
-        
-        // Load cart items with products
-        $cart->load(['items.product' => function ($query) {
-            $query->select('id', 'name', 'discounted_price', 'price', 'images');
-        }]);
-        
-        return response()->json([
-            'status' => 'success',
-            'message' => 'Cart updated',
-            'data' => $cart->items
-        ]);
+
+        $product = Product::findOrFail($productId);
+        $quantity = $request->input('quantity');
+
+        if (Auth::check()) {
+            $user = Auth::user();
+            $cart = Cart::firstOrFail(['user_id' => $user->id]);
+            $cart->updateItemQuantity($product, $quantity);
+            $cart->updateTotalPrice();
+            $cart->load(['items.product']);
+
+            return response()->json(['status' => 'success', 'message' => 'Cart updated', 'data' => $cart->items]);
+        }
+
+        $guestCart = collect(session('guest_cart', []));
+        $guestCart = $guestCart->map(function ($item) use ($productId, $quantity) {
+            if ($item['product_id'] == $productId) {
+                $item['quantity'] = $quantity;
+            }
+            return $item;
+        });
+
+        session(['guest_cart' => $guestCart->values()->toArray()]);
+
+        return response()->json(['status' => 'success', 'message' => 'Cart updated', 'data' => $guestCart->values()->toArray()]);
     }
-    
-    /**
-     * Remove a product from the cart.
-     *
-     * @param  int  $product
-     * @return \Illuminate\Http\JsonResponse
-     */
-    public function removeItem($product)
+
+    public function removeItem($productId)
     {
-        $user = Auth::user();
-        $product = Product::findOrFail($product);
-        
-        // Get user's cart
-        $cart = Cart::where('user_id', $user->id)->firstOrFail();
-        
-        // Delete cart item
-        $cart->items()->where('product_id', $product->id)->delete();
-        
-        // Update cart total price
-        $this->updateCartTotalPrice($cart);
-        
-        // Load cart items with products
-        $cart->load(['items.product' => function ($query) {
-            $query->select('id', 'name', 'discounted_price', 'price', 'images');
-        }]);
-        
-        return response()->json([
-            'status' => 'success',
-            'message' => 'Product removed from cart',
-            'data' => $cart->items
-        ]);
+        if (Auth::check()) {
+            $user = Auth::user();
+            $product = Product::findOrFail($productId);
+            $cart = Cart::where('user_id', $user->id)->firstOrFail();
+            $cart->removeItem($product);
+            $cart->updateTotalPrice();
+            $cart->load(['items.product']);
+
+            return response()->json(['status' => 'success', 'message' => 'Product removed', 'data' => $cart->items]);
+        }
+
+        $guestCart = collect(session('guest_cart', []))->filter(fn ($item) => $item['product_id'] != $productId);
+        session(['guest_cart' => $guestCart->values()->toArray()]);
+
+        return response()->json(['status' => 'success', 'message' => 'Product removed', 'data' => $guestCart->values()->toArray()]);
     }
-    
-    /**
-     * Clear the user's cart.
-     *
-     * @return \Illuminate\Http\JsonResponse
-     */
+
     public function clear()
     {
-        $user = Auth::user();
-        
-        // Get user's cart
-        $cart = Cart::where('user_id', $user->id)->firstOrFail();
-        
-        // Delete all cart items
-        $cart->items()->delete();
-        
-        // Reset cart total price
-        $cart->total_price = 0;
-        $cart->save();
-        
-        return response()->json([
-            'status' => 'success',
-            'message' => 'Cart cleared',
-            'data' => []
-        ]);
+        if (Auth::check()) {
+            $user = Auth::user();
+            $cart = Cart::where('user_id', $user->id)->firstOrFail();
+            $cart->clear();
+
+            return response()->json(['status' => 'success', 'message' => 'Cart cleared', 'data' => []]);
+        }
+
+        session(['guest_cart' => []]);
+
+        return response()->json(['status' => 'success', 'message' => 'Cart cleared', 'data' => []]);
     }
-    
-    /**
-     * Update the cart's total price.
-     *
-     * @param  \App\Models\Cart  $cart
-     * @return void
-     */
-    private function updateCartTotalPrice(Cart $cart)
-    {
-        $totalPrice = $cart->items()->sum(DB::raw('quantity * discounted_price'));
-        $cart->total_price = $totalPrice;
-        $cart->save();
-    }
-} 
+}
+

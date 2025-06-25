@@ -11,7 +11,6 @@ interface Props {
 }
 
 export default function CurrentAffairsPage({ correntaffer }: Props) {
-    console.log(correntaffer);
     return (
         <>
             <FrontendLayout>

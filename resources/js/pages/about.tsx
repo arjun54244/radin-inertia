@@ -1,6 +1,6 @@
 
 import { HandCoinsIcon, Map, Phone, TruckIcon, UserCogIcon } from "lucide-react";
-import { Link } from "@inertiajs/react";
+import { Head, Link } from "@inertiajs/react";
 import Team from "@/components/frontend/Team";
 import FrontendLayout from "@/layouts/frontend-layout";
 
@@ -9,9 +9,10 @@ export default function page() {
     return (
 
         <>
+         <Head title="About" />
             <FrontendLayout>
-                <section className="relative table w-full items-center py-36 bg-top bg-no-repeat bg-cover" style={{ backgroundImage: "url('https://radianbooks.in/img/about.webp')" }}>
-                    <div className="absolute inset-0 bg-gradient-to-b from-slate-900/60 via-slate-900/80 to-slate-900"></div>
+                <section className="relative table w-full items-center py-36 bg-top bg-no-repeat bg-cover" style={{ backgroundImage: "url('assets/img/breadcrumb/1.png')" }}>
+                    <div className="absolute inset-0 bg-gradient-to-b from-slate-400/10 via-slate-400/10 to-slate-900"></div>
                     <div className="container relative">
                         <div className="grid grid-cols-1 pb-8 text-center mt-10">
                             <h3 className="mb-3 text-4xl leading-normal tracking-wider font-semibold text-white">About Us</h3>
@@ -33,7 +34,7 @@ export default function page() {
                     <div className="container relative">
                         <div className="grid md:grid-cols-12 grid-cols-1 items-center gap-6">
                             <div className="lg:col-span-5 md:col-span-6">
-                                <img src="assets/images/ab1.jpg" className="rounded-t-full shadow-md dark:shadow-gray-800" alt="" />
+                                <img src="assets/img/about/1.png" className="rounded-t-full shadow-md dark:shadow-gray-800" alt="" />
                             </div>
 
                             <div className="lg:col-span-7 md:col-span-6">

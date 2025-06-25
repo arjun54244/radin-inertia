@@ -71,11 +71,10 @@ function Pagination({ links }: { links: any[] }) {
 
 
 const Blog = ({ blogs }: BlogPropType) => {
-    console.log(blogs);
     return (
         <>
             <FrontendLayout>
-                <section className="relative table w-full items-center py-36 bg-[url('assets/images/hero/pages.jpg')] bg-top bg-no-repeat bg-cover">
+                <section className="relative table w-full items-center py-36 bg-[url('assets/img/breadcrumb/1.png')] bg-top bg-no-repeat bg-cover">
                     <div className="absolute inset-0 bg-gradient-to-b from-slate-900/60 via-slate-200/80 to-slate-900"></div>
                     <div className="container relative">
                         <div className="grid grid-cols-1 pb-8 text-center mt-10">

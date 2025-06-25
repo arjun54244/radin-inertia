@@ -18,7 +18,7 @@ export default function Contact() {
                 <div className="container">
                     <div className="grid md:grid-cols-12 grid-cols-1 items-center gap-6">
                         <div className="lg:col-span-7 md:col-span-6">
-                            <img src="assets/images/contact.svg" alt="" />
+                            <img src="assets/img/contact/1.png" alt="" />
                         </div>
 
                         <div className="lg:col-span-5 md:col-span-6">
