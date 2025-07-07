@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\CartController;
+use App\Models\Product;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
@@ -9,10 +10,19 @@ Route::get('/user', function (Request $request) {
 })->middleware('auth:sanctum');
 
 
-// Route::middleware('auth:sanctum')->group(function () {
-    Route::get('/cart', [CartController::class, 'index']);
-    Route::post('/cart/add/{product}', [CartController::class, 'addItem']);
-    Route::put('/cart/update/{product}', [CartController::class, 'updateItem']);
-    Route::delete('/cart/remove/{product}', [CartController::class, 'removeItem']);
-    Route::delete('/cart/clear', [CartController::class, 'clear']);
-// });
+
+Route::get('/search-products', function (Request $request) {
+    $search = $request->get('q');
+
+    if (!$search) {
+        return response()->json([]);
+    }
+
+    $products = Product::query()
+        ->where('name', 'like', "%{$search}%")
+        ->orWhere('sku', 'like', "%{$search}%")
+        ->limit(10)
+        ->get(['id', 'name', 'slug', 'sku']);
+
+    return response()->json($products);
+});

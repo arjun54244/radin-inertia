@@ -1,7 +1,7 @@
 import React from 'react'
 import { Link } from "@inertiajs/react";
 import { Dribbble, Linkedin, Facebook, Instagram, Youtube, Twitter, Mail, Package, DollarSign, ShieldCheck, Heart, ChevronRight, MapPin, Phone, Truck, RotateCcw, Wallet, Headphones } from "lucide-react";
-
+import  AskAI  from "@/components/frontend/AskAI";
 export default function Footer() {
     const explore = [
         { name: "Home", link: "/" },

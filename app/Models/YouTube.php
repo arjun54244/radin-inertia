@@ -10,6 +10,7 @@ class YouTube extends Model
     use HasFactory;
 
     protected $fillable = [
+        'type',
         'title',
         'video_id',
         'is_active',

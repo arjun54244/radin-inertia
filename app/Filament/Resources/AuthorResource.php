@@ -6,6 +6,7 @@ use App\Filament\Resources\AuthorResource\Pages;
 use App\Filament\Resources\AuthorResource\RelationManagers;
 use App\Models\Author;
 use Filament\Forms;
+use Filament\Forms\Components\Checkbox;
 use Filament\Forms\Components\FileUpload;
 use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
@@ -53,6 +54,7 @@ class AuthorResource extends Resource
                                     ->maxLength(255)
                                     ->nullable(),
 
+
                                 Forms\Components\MarkdownEditor::make('description')
                                     ->columnSpanFull()
                                     ->nullable(),
@@ -67,14 +69,26 @@ class AuthorResource extends Resource
                                     ->required()
                                     ->unique(Author::class, 'slug', ignoreRecord: true),
 
+                                TextInput::make('post')
+                                    ->label('Post')
+                                    ->maxLength(255)
+                                    ->nullable(),
+
                                 FileUpload::make('image')
-                                    ->image()
+                                    //  ->image()
+                                    ->imageEditor()
                                     ->directory('authors')
                                     ->nullable(),
 
                                 Toggle::make('status')
                                     ->label('Active Status')
                                     ->default(true),
+                                Checkbox::make('member')->inline()->columns(2)
+                                    ->label('Member')
+                                    ->helperText('Is this author a member?'),
+                                Checkbox::make('author')->inline()->columns(2)
+                                    ->label('Author')
+                                    ->helperText('Is this author a content author?'),
                             ]),
                     ]),
             ]);

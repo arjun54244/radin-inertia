@@ -6,143 +6,55 @@ use App\Http\Controllers\Controller;
 use App\Models\Cart;
 use App\Models\CartItem;
 use App\Models\Product;
+use App\Services\CartService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
+use Inertia\Inertia;
+
 
 class CartController extends Controller
 {
-    public function index()
+    public function index(CartService $cartService)
     {
-        if (Auth::check()) {
-            $user = Auth::user();
-            $cart = Cart::firstOrCreate(['user_id' => $user->id]);
-            $cart->load(['items.product:id,name,discounted_price,price,images']);
-
-            return response()->json(['status' => 'success', 'data' => $cart->items]);
-        }
-
-        return response()->json(['status' => 'success', 'data' => session('guest_cart', [])]);
+        return response()->json([
+            'cartItems' => $cartService->getCartItems(),
+            'totalPrice' => $cartService->getTotalPrice(),
+        ]);
     }
 
-    public function addItem(Request $request, $productId)
+    public function getCart(CartService $cartService)
     {
-        $validator = Validator::make($request->all(), [
+        return Inertia::render('cart', [
+            'cartItems' => $cartService->getCartItems(),
+            'totalPrice' => $cartService->getTotalPrice(),
+        ]);
+    }
+
+    public function store(Request $request, Product $product, CartService $cartService)
+    {
+        $validated = $request->validate([
             'quantity' => 'required|integer|min:1',
         ]);
 
-        if ($validator->fails()) {
-            return response()->json(['status' => 'error', 'errors' => $validator->errors()], 422);
-        }
-
-        $product = Product::select('id', 'name', 'price', 'discounted_price', 'images')->findOrFail($productId);
-        $quantity = $request->input('quantity', 1);
-
-        if (Auth::check()) {
-            $user = Auth::user();
-            $cart = Cart::firstOrCreate(['user_id' => $user->id]);
-            $cart->addItem($product, $quantity);
-            $cart->updateTotalPrice();
-            $cart->load(['items.product']);
-
-            return response()->json(['status' => 'success', 'data' => $cart->items]);
-        }
-
-        $guestCart = collect(session('guest_cart', []));
-
-        $existing = $guestCart->firstWhere('product_id', $product->id);
-
-        if ($existing) {
-            $guestCart = $guestCart->map(function ($item) use ($product, $quantity) {
-                if ($item['product_id'] === $product->id) {
-                    $item['quantity'] += $quantity;
-                }
-                return $item;
-            });
-        } else {
-            $guestCart->push([
-                'product_id' => $product->id,
-                'quantity' => $quantity,
-                'price' => $product->price,
-                'discounted_price' => $product->discounted_price,
-                'product' => $product,
-            ]);
-        }
-
-        session(['guest_cart' => $guestCart->values()->toArray()]);
-
-        return response()->json(['status' => 'success', 'data' => $guestCart->values()->toArray()]);
+        $cartService->addItemCart($product, $validated['quantity']);
+        return back()->with('success', 'Item added to cart!');
     }
 
-    public function updateItem(Request $request, $productId)
+    public function update(Request $request, Product $product, CartService $cartService)
     {
-        $validator = Validator::make($request->all(), [
+        $validated = $request->validate([
             'quantity' => 'required|integer|min:1',
         ]);
 
-        if ($validator->fails()) {
-            return response()->json(['status' => 'error', 'errors' => $validator->errors()], 422);
-        }
-
-        $product = Product::findOrFail($productId);
-        $quantity = $request->input('quantity');
-
-        if (Auth::check()) {
-            $user = Auth::user();
-            $cart = Cart::firstOrFail(['user_id' => $user->id]);
-            $cart->updateItemQuantity($product, $quantity);
-            $cart->updateTotalPrice();
-            $cart->load(['items.product']);
-
-            return response()->json(['status' => 'success', 'message' => 'Cart updated', 'data' => $cart->items]);
-        }
-
-        $guestCart = collect(session('guest_cart', []));
-        $guestCart = $guestCart->map(function ($item) use ($productId, $quantity) {
-            if ($item['product_id'] == $productId) {
-                $item['quantity'] = $quantity;
-            }
-            return $item;
-        });
-
-        session(['guest_cart' => $guestCart->values()->toArray()]);
-
-        return response()->json(['status' => 'success', 'message' => 'Cart updated', 'data' => $guestCart->values()->toArray()]);
+        $cartService->updateItemQuantity($product->id, $validated['quantity']);
+        return back()->with('success', 'Cart updated!');
     }
 
-    public function removeItem($productId)
+    public function destroy(Product $product, CartService $cartService)
     {
-        if (Auth::check()) {
-            $user = Auth::user();
-            $product = Product::findOrFail($productId);
-            $cart = Cart::where('user_id', $user->id)->firstOrFail();
-            $cart->removeItem($product);
-            $cart->updateTotalPrice();
-            $cart->load(['items.product']);
-
-            return response()->json(['status' => 'success', 'message' => 'Product removed', 'data' => $cart->items]);
-        }
-
-        $guestCart = collect(session('guest_cart', []))->filter(fn ($item) => $item['product_id'] != $productId);
-        session(['guest_cart' => $guestCart->values()->toArray()]);
-
-        return response()->json(['status' => 'success', 'message' => 'Product removed', 'data' => $guestCart->values()->toArray()]);
-    }
-
-    public function clear()
-    {
-        if (Auth::check()) {
-            $user = Auth::user();
-            $cart = Cart::where('user_id', $user->id)->firstOrFail();
-            $cart->clear();
-
-            return response()->json(['status' => 'success', 'message' => 'Cart cleared', 'data' => []]);
-        }
-
-        session(['guest_cart' => []]);
-
-        return response()->json(['status' => 'success', 'message' => 'Cart cleared', 'data' => []]);
+        $cartService->removeItemFromCart($product->id);
+        return back()->with('success', 'Item removed!');
     }
 }
-

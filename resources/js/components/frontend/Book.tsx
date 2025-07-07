@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Bookmark, Eye, Heart, Star } from "lucide-react";
 import { Link } from "@inertiajs/react";
 import { useCart } from "@/hooks/useCart";
@@ -9,14 +9,30 @@ interface BookProps {
 }
 
 export default function Book({ product }: BookProps) {
-  const { addToCart, isLoading: cartLoading } = useCart();
+  const { data: cartData, isAdding, isLoading, addToCart, isLoading: cartLoading } = useCart();
   const [quantity, setQuantity] = useState(1);
+  const [totalQuantity, setTotalQuantity] = useState(1);
   const [isAddingToCart, setIsAddingToCart] = useState(false);
+  const [optionIds, setOptionIds] = useState<Record<string, number>>({});
 
+  const items = cartData?.cartItems ?? [];
+  useEffect(() => {
+    if (!isLoading && items.length) {
+      const existingItem = items.find((item) => item.product_id === product.id);
+      if (existingItem) {
+        setTotalQuantity(existingItem.quantity);
+      }
+    }
+  }, [isLoading, cartData, product.id]);
   const handleAddToCart = async () => {
     try {
       setIsAddingToCart(true);
-      await addToCart(product.id, quantity);
+      await addToCart({
+        bookId: product.id,
+        option_ids: optionIds,
+        quantity,
+        price: product.discounted_price ? parseFloat(product.discounted_price) : null,
+      });
     } catch (error) {
       console.error("Error adding to cart:", error);
     } finally {
@@ -58,18 +74,11 @@ export default function Book({ product }: BookProps) {
         </div>
 
         <div className="absolute top-3 right-3 space-y-2 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-          <button className="p-2 rounded-full bg-white text-slate-900 hover:bg-slate-900 hover:text-white shadow">
-            <Heart size={16} />
-          </button>
-          <Link
-            href={`/books/${product.slug}`}
-            className="p-2 rounded-full bg-white text-slate-900 hover:bg-slate-900 hover:text-white shadow"
-          >
-            <Eye size={16} />
-          </Link>
-          <button className="p-2 rounded-full bg-white text-slate-900 hover:bg-slate-900 hover:text-white shadow">
-            <Bookmark size={16} />
-          </button>
+          <ul className="list-none absolute top-[10px] end-4 opacity-0 group-hover:opacity-100 duration-500 space-y-1">
+            <li><a href="javascript:void(0)" className="size-10 inline-flex items-center justify-center tracking-wide align-middle duration-500 text-center rounded-full bg-white text-slate-900 hover:bg-slate-900 hover:text-white shadow"><Heart size={16} /></a></li>
+            <li className="mt-1"><Link
+              href={`/books/${product.slug}`} className="size-10 inline-flex items-center justify-center tracking-wide align-middle duration-500 text-center rounded-full bg-white text-slate-900 hover:bg-slate-900 hover:text-white shadow"> <Eye size={16} /></Link></li>
+          </ul>
         </div>
       </div>
 
@@ -81,20 +90,20 @@ export default function Book({ product }: BookProps) {
           {product.name.split(" ").slice(0, 8).join(" ") + "..."}
         </Link>
 
-        <div className="flex items-center gap-2 mt-2">
+        <div className="flex items-center justify-between w-full px-4 mb-0">
           <input
             type="number"
             min="1"
-            value={quantity}
-            onChange={(e) => setQuantity(parseInt(e.target.value) || 1)}
+            value={totalQuantity}
+            readOnly
             className="w-16 px-2 py-1 text-center border border-gray-300 rounded-md focus:outline-none dark:bg-slate-800 dark:border-gray-600 text-sm"
           />
           <button
             onClick={handleAddToCart}
-            disabled={isAddingToCart || cartLoading}
+            disabled={isAdding}
             className="bg-orange-600 text-white text-sm font-medium px-4 py-1.5 rounded hover:bg-orange-700 transition disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            {isAddingToCart || cartLoading ? "Adding..." : "Add to Cart"}
+            {isAdding || cartLoading ? "Adding..." : "Add to Cart"}
           </button>
         </div>
 

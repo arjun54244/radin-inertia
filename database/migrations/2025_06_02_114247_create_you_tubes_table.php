@@ -13,6 +13,7 @@ return new class extends Migration
     {
         Schema::create('you_tubes', function (Blueprint $table) {
             $table->id();
+            $table->string('type'); // e.g., 'video', 'channel', 'playlist'
             $table->string('title');
             $table->string('video_id'); // Just the YouTube video ID, e.g., dQw4w9WgXcQ
             $table->boolean('is_active')->default(true);

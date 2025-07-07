@@ -16,8 +16,11 @@ return new class extends Migration
             $table->string('name');
             $table->string('slug')->unique();
             $table->string('url')->nullable();
+            $table->string('post')->nullable();
             $table->string('image')->nullable();
             $table->longText('description')->nullable();
+            $table->boolean('member')->default(false);
+            $table->boolean('author')->default(false);
             $table->boolean('status')->default(true);
             $table->timestamps();
         });

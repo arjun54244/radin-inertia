@@ -1,10 +1,10 @@
 "use client"
 
-import { useEffect, useState, useRef } from "react"
+import { useEffect, useRef, useState } from "react"
 import { cn } from "@/lib/utils"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Card, CardContent } from "@/components/ui/card"
-import { Star, StarIcon, StarsIcon } from "lucide-react"
+import { Star } from "lucide-react"
 
 interface Testimonial {
   id: number
@@ -13,52 +13,49 @@ interface Testimonial {
   review: string
   rating: string
   company: string
-  image?: string // backend-provided image
+  image?: string
 }
 
 interface TestimonialsCardsProps {
   testimonials: Testimonial[]
+  title?: string
+  tagline?: string
 }
 
-export default function TestimonialsCards({ testimonials }: TestimonialsCardsProps) {
+export default function TestimonialsCards({ testimonials , title, tagline }: TestimonialsCardsProps) {
   const [isPaused, setIsPaused] = useState(false)
   const containerRef = useRef<HTMLDivElement>(null)
 
-  // Auto slide functionality
+  // Auto-slide scroll effect
   useEffect(() => {
     if (!isPaused && containerRef.current) {
-      const scrollAmount = 1 // pixels per frame
+      const scrollAmount = 0.7
       let animationFrameId: number
 
       const scroll = () => {
         if (containerRef.current) {
           containerRef.current.scrollLeft += scrollAmount
-
           if (
             containerRef.current.scrollLeft >=
             containerRef.current.scrollWidth - containerRef.current.clientWidth
           ) {
             containerRef.current.scrollLeft = 0
           }
-
           animationFrameId = requestAnimationFrame(scroll)
         }
       }
 
       animationFrameId = requestAnimationFrame(scroll)
-
-      return () => {
-        cancelAnimationFrame(animationFrameId)
-      }
+      return () => cancelAnimationFrame(animationFrameId)
     }
   }, [isPaused])
 
   return (
-    <section className="py-16 bg-background">
-      <div className="container px-4 mx-auto">
-        <h2 className="text-3xl font-bold text-center mb-4">What Our Clients Say</h2>
-        <p className="text-center text-muted-foreground mb-12 max-w-2xl mx-auto">
-          Don&apos;t just take our word for it. Here&apos;s what our customers have to say about their experience with our product.
+    <section className="py-6 bg-background">
+      <div className="container mx-auto px-4">
+        <h2 className="text-3xl font-bold text-center mb-2">{ title || 'Student Reviews'}</h2>
+        <p className="text-center text-muted-foreground mb-10 max-w-xl mx-auto">
+          {tagline ||'Real stories from real customers. Trusted and verified experiences, just like Google Reviews.'}
         </p>
 
         <div
@@ -68,51 +65,49 @@ export default function TestimonialsCards({ testimonials }: TestimonialsCardsPro
         >
           <div
             ref={containerRef}
-            className="flex overflow-x-hidden gap-6 py-4 px-2 scroll-smooth"
+            className="flex overflow-x-hidden gap-4 py-2 px-1 scroll-smooth"
           >
             {[...testimonials, ...testimonials].map((testimonial, index) => (
               <Card
                 key={`${testimonial.id}-${index}`}
                 className={cn(
-                  "flex-shrink-0 w-full max-w-sm transition-all duration-300 hover:shadow-md"
+                  "flex-shrink-0 w-[320px] border border-gray-200 dark:border-gray-800 rounded-xl shadow-sm hover:shadow-md transition duration-300"
                 )}
               >
-                <CardContent className="p-6">
-                  <div className="flex flex-col h-full min-h-[220px]">
-                    <div className="mb-6">
-                      <svg
-                        className="h-6 w-6 text-primary mb-2"
-                        fill="currentColor"
-                        viewBox="0 0 24 24"
-                      >
-                        <path d="M14.017 21v-7.391c0-5.704 3.731-9.57 8.983-10.609l.995 2.151c-2.432.917-3.995 3.638-3.995 5.849h4v10h-9.983zm-14.017 0v-7.391c0-5.704 3.748-9.57 9-10.609l.996 2.151c-2.433.917-3.996 3.638-3.996 5.849h3.983v10h-9.983z" />
-                      </svg>
-                      <p className="text-card-foreground">{testimonial.review ?? "No testimonial provided."}</p>
-                    </div>
-                    <div className="mt-auto flex items-center">
-                      <Avatar className="h-10 w-10 mr-3">
+                <CardContent className="p-5 flex flex-col h-full justify-between">
+                  <div className="mb-4">
+                    <div className="flex items-center gap-3 mb-2">
+                      <Avatar className="h-12 w-12">
                         <AvatarImage
                           src={testimonial.image || "/placeholder.svg"}
-                          alt={testimonial.name ?? "Anonymous"}
+                          alt={testimonial.name}
                         />
                         <AvatarFallback>
                           {testimonial.name
                             ? testimonial.name
-                              .split(" ")
-                              .map((n) => n[0])
-                              .join("")
+                                .split(" ")
+                                .map((n) => n[0])
+                                .join("")
                             : "NA"}
                         </AvatarFallback>
                       </Avatar>
                       <div>
-                        <div className="font-medium">{testimonial.name ?? "Anonymous"}</div>
-                        <div className="text-sm text-muted-foreground">
-                          {Array.from({ length: parseInt(testimonial.rating || "0", 10) }).map((_, index) => (
-                            <Star color="#ff9b00" key={`star-${index}`} size={16} className="inline-block ml-2"/> // Unicode for ★
-                          ))}, {testimonial.company ?? "Unknown Company"}
-                        </div>
+                        <p className="font-semibold text-[15px] leading-none">{testimonial.name}</p>
+                        <p className="text-sm text-muted-foreground">Verified Reviewer</p>
                       </div>
                     </div>
+
+                    <div className="flex items-center mb-1">
+                      {Array.from({ length: parseInt(testimonial.rating || "0") }).map((_, i) => (
+                        <Star key={i} size={16} fill="#fbbf24" stroke="#fbbf24" className="mr-1" />
+                      ))}
+                    </div>
+
+                    <p className="text-muted-foreground text-sm mb-2 italic">"{testimonial.review}"</p>
+                  </div>
+
+                  <div className="text-xs text-muted-foreground mt-auto">
+                    {testimonial.company}
                   </div>
                 </CardContent>
               </Card>

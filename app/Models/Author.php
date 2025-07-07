@@ -13,9 +13,12 @@ class Author extends Model
         'name',
         'slug',
         'url',
+        'post',
         'image',
         'description',
         'status',
+        'member',
+        'author',
     ];
 
     // Relationships

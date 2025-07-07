@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources;
 
+use App\Enums\YoutubeEnum;
 use App\Filament\Resources\YouTubeResource\Pages;
 use App\Filament\Resources\YouTubeResource\RelationManagers;
 use App\Models\YouTube;
@@ -19,11 +20,22 @@ class YouTubeResource extends Resource
 
     protected static ?string $navigationIcon = 'heroicon-o-video-camera';
     protected static ?string $navigationGroup = 'Content Management';
+    protected static ?string $navigationLabel = 'YouTube Videos';
     protected static ?int $navigationSort = 4;
     public static function form(Form $form): Form
     {
         return $form
             ->schema([
+                //type selector
+                Forms\Components\Select::make('type')
+                    ->label('Type')
+                    ->options([
+                        'review' => YoutubeEnum::REVIEW->value,
+                        'homevideo' => YoutubeEnum::HOME_VIDEO->value,
+                        'playlist' => YoutubeEnum::PLAYLIST->value,
+                    ])
+                    ->default('video')
+                    ->required(),
                 Forms\Components\TextInput::make('title')->required(),
                 Forms\Components\TextInput::make('video_id')->label('YouTube Video ID')->required(),
                 Forms\Components\Toggle::make('is_active')->default(true),
@@ -34,8 +46,9 @@ class YouTubeResource extends Resource
     {
         return $table
             ->columns([
-                Tables\Columns\TextColumn::make('title')->searchable(),
-                Tables\Columns\TextColumn::make('video_id'),
+                Tables\Columns\TextColumn::make('title')->limit(50)->searchable(),
+                Tables\Columns\TextColumn::make('type'),
+                // Tables\Columns\TextColumn::make('video_id'),
                 Tables\Columns\IconColumn::make('is_active')->boolean(),
             ])
             ->actions([

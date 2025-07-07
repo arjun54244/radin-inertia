@@ -1,138 +1,191 @@
-import { Product } from "@/types/books"
-import { Bookmark, Eye, Heart, Star } from "lucide-react"
-import { Link } from "@inertiajs/react"
-import { useCart } from "@/contexts/CartContext"
-import { useState } from "react"
-
-interface BookProps {
-  product: Product
+import FrontendLayout from "@/layouts/frontend-layout";
+import { Product } from "@/types/books";
+import { Head, useForm } from "@inertiajs/react";
+import { Minus, Plus, Star } from "lucide-react";
+import Slider from "react-slick";
+import BookImageSlider from "./BookImageSlider";
+import ProductTabs from "@/components/ProductTabs";
+import Book from "@/components/frontend/Book";
+import { useMemo, useState } from "react";
+import { toast } from "react-toastify";
+import { useAddToCart } from "@/hooks/useAddToCart";
+import { useCart } from "@/hooks/useCart";
+interface BookDetailPageProps {
+  book: Product;
+  newbooks: Product[];
 }
 
-interface Author {
-  id: number
-  name: string
-}
+export default function BookDetails({ book, newbooks }: BookDetailPageProps) {
+  const sliderSettings = {
+    dots: true,
+    infinite: true,
+    speed: 500,
+    slidesToShow: 1,
+    slidesToScroll: 1,
+  };
+  const images: string[] = Array.isArray(book.images)
+    ? book.images
+    : JSON.parse(book.images || "[]");
 
-export default function Book({ product }: BookProps) {
-  const { addToCart, isLoading } = useCart()
-  const [quantity, setQuantity] = useState(1)
-  const [isAddingToCart, setIsAddingToCart] = useState(false)
+  const [optionIds, setOptionIds] = useState<Record<string, number>>({});
+  const [quantity, setQuantity] = useState(1);
+  const [price, setPrice] = useState<number | null>(null);
 
-  const handleAddToCart = async () => {
-    try {
-      setIsAddingToCart(true)
-      await addToCart(product.id, quantity)
-    } catch (error) {
-      console.error("Error adding to cart:", error)
-    } finally {
-      setIsAddingToCart(false)
-    }
-  }
+  const form = useForm<{
+    option_ids: Record<string, number>;
+    quantity: number;
+    price: number | null;
+  }>({
+    option_ids: {},
+    quantity: 1,
+    price: null,
+  });
+  
+  const {
+    mutate: addToCart,
+    isPending,
+    isSuccess,
+    data, 
+  } = useAddToCart();
 
-  const discountPercentage = (
-    ((parseFloat(product.price) - parseFloat(product.discounted_price)) / parseFloat(product.price)) *
-    100
-  ).toFixed(0)
+  const increaseQty = () => {
+    setQuantity(prev => prev + 1);
+  };
 
-  const apiBaseUrl = "http://localhost:8000/storage";
+  const decreaseQty = () => {
+    setQuantity(prev => (prev > 1 ? prev - 1 : 1));
+  };
 
-  const getImageUrl = (imagePath: string) => {
-    if (!imagePath) return "/placeholder.jpg" // fallback
-    if (imagePath.startsWith("http")) return imagePath
-    return `${apiBaseUrl}/${imagePath}`
-  }
 
-  // const authorName =
-  //   typeof product.author === "object" && product.author !== null
-  //     ? (product.author as Author).name
-  //     : product.author || "Radian"
+  const handleAddToCart = () => {
+    addToCart({
+      bookId: book.id,
+      option_ids: optionIds,
+      quantity,
+      price,
+    });
+  };
 
-  // Parse JSON string to array
-  const images: string[] = Array.isArray(product.images) ? product.images : [];
-  const rating = Number(product.rating) || 0
+
 
   return (
-    <div className="group rounded-xl overflow-hidden shadow transition hover:shadow-xl bg-white dark:bg-slate-900">
-      <div className="relative">
-        <Link href={`/books/${product.slug}`}>
-          <img
-            src={getImageUrl(images[0] || "")}
-            alt={product.name}
-            width={500}
-            height={650}
-            className="object-cover w-full h-auto rounded-t-xl transition-transform duration-500 group-hover:scale-105"
-          />
-        </Link>
+    <>
+      <FrontendLayout>
+        <Head title="Book Details" />
+        <section className="relative table w-full py-20 lg:py-24 md:pt-28 bg-gray-50 dark:bg-slate-800">
+          <div className="container relative">
+            <div className="grid grid-cols-1 mt-14">
+              <h3 className="text-3xl leading-normal font-semibold">Book Details</h3>
+            </div>
 
-        {/* Discount Badge */}
-        <div className="absolute top-3 left-3 bg-orange-600 text-white text-xs font-semibold px-2.5 py-1 rounded">
-          -{discountPercentage}% Off
-        </div>
-
-        {/* Action Icons */}
-        <div className="absolute top-3 right-3 space-y-2 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-          <button className="p-2 rounded-full bg-white text-slate-900 hover:bg-slate-900 hover:text-white shadow">
-            <Heart size={16} />
-          </button>
-          <Link
-            href={`/books/${product.slug}`}
-            className="p-2 rounded-full bg-white text-slate-900 hover:bg-slate-900 hover:text-white shadow"
-          >
-            <Eye size={16} />
-          </Link>
-          <button className="p-2 rounded-full bg-white text-slate-900 hover:bg-slate-900 hover:text-white shadow">
-            <Bookmark size={16} />
-          </button>
-        </div>
-      </div>
-
-      {/* Book Info */}
-      <div className="p-4 space-y-2">
-        {/* <p className="text-sm text-gray-500 dark:text-gray-400">By {authorName}</p> */}
-
-        <Link
-          href={`/books/${product.slug}`}
-          className="text-lg font-semibold text-slate-800 hover:text-orange-600 dark:text-white dark:hover:text-orange-500"
-        >
-          { product.name.split(" ").slice(0, 8).join(" ") + "..."}
-        </Link>
-
-        {/* Add to Cart */}
-        <div className="flex items-center gap-2 mt-2">
-          <input
-            type="number"
-            min="1"
-            value={quantity}
-            onChange={(e) => setQuantity(parseInt(e.target.value) || 1)}
-            className="w-16 px-2 py-1 text-center border border-gray-300 rounded-md focus:outline-none dark:bg-slate-800 dark:border-gray-600 text-sm"
-          />
-          <button
-            onClick={handleAddToCart}
-            disabled={isAddingToCart || isLoading}
-            className="bg-orange-600 text-white text-sm font-medium px-4 py-1.5 rounded hover:bg-orange-700 transition disabled:opacity-50 disabled:cursor-not-allowed"
-          >
-            {isAddingToCart || isLoading ? "Adding..." : "Add to Cart"}
-          </button>
-        </div>
-
-        <div className="flex items-center justify-between mt-1">
-          <div className="text-base font-semibold text-orange-600">
-            ₹{product.discounted_price}
-            <span className="text-sm text-gray-400 line-through ms-2">₹{product.price}</span>
+            <div className="relative mt-3">
+              <ul className="tracking-[0.5px] mb-0 inline-block">
+                <li className="inline-block uppercase text-[13px] font-bold duration-500 ease-in-out hover:text-orange-500"><a href="/">Home</a></li>
+                <li className="inline-block text-base text-slate-950 dark:text-white mx-0.5 ltr:rotate-0 rtl:rotate-180"><i className="mdi mdi-chevron-right"></i></li>
+                <li className="inline-block uppercase text-[13px] font-bold duration-500 ease-in-out hover:text-orange-500"><a href="/books">Store</a></li>
+                <li className="inline-block text-base text-slate-950 dark:text-white mx-0.5 ltr:rotate-0 rtl:rotate-180"><i className="mdi mdi-chevron-right"></i></li>
+                <li className="inline-block uppercase text-[13px] font-bold text-orange-500" aria-current="page">Book Detail</li>
+              </ul>
+            </div>
           </div>
-          <ul className="flex space-x-1 text-amber-400">
-            {[...Array(5)].map((_, index) => (
-              <li key={index}>
-                <Star size={16} fill={index < rating ? "currentColor" : "none"} />
-              </li>
-            ))}
-          </ul>
-        </div>
+        </section>
 
-        <p className="text-xs text-gray-400 dark:text-gray-500">
-          {product.binding} | {product.pages} pages | {product.weight} | {product.dimensions}
-        </p>
-      </div>
-    </div>
-  )
+
+
+        <section className="relative md:py-24 py-16">
+          <div className="container relative">
+            <div className="grid md:grid-cols-2 grid-cols-1 gap-6 items-center">
+              <BookImageSlider images={images} bookName={book.name} />
+
+              <div className="">
+                <h5 className="text-2xl font-semibold">{book.name}</h5>
+                <div className="mt-2">
+
+                  <span className="text-slate-400 font-semibold me-1">₹{parseFloat(book.discounted_price)}<del className="text-red-600">₹{parseFloat(book.price)} </del></span>
+
+                  <ul className="list-none inline-block text-orange-400">
+                    {Array.from({ length: Math.round(book.rating) }).map((_, index) => (
+                      <li key={index} className="inline"><i className="mdi mdi-star text-lg"></i></li>
+                    ))}
+                    <li className="inline text-slate-400 font-semibold">  ({book.rating})</li>
+                  </ul>
+                </div>
+
+                <div className="mt-4">
+                  <h5 className="text-lg font-semibold">Overview :</h5>
+                  <p className="text-slate-400 mt-2">
+                    {book.description}
+                  </p>
+
+                  {/* <ul className="list-none text-slate-400 mt-4">
+                    <li className="mb-1 flex"><i className="mdi mdi-check-circle-outline text-orange-500 text-xl me-2"></i> Digital Marketing Solutions for Tomorrow</li>
+                    <li className="mb-1 flex"><i className="mdi mdi-check-circle-outline text-orange-500 text-xl me-2"></i> Our Talented & Experienced Marketing Agency</li>
+                    <li className="mb-1 flex"><i className="mdi mdi-check-circle-outline text-orange-500 text-xl me-2"></i> Create your own skin to match your brand</li>
+                  </ul> */}
+                </div>
+
+                <div className="grid lg:grid-cols-2 grid-cols-1 gap-6 mt-4">
+
+                  <div className="flex items-center">
+                    <h5 className="text-lg font-semibold me-2">Quantity:</h5>
+                    <div className="qty-icons ms-3 space-x-0.5">
+                      <button
+                        type="button"
+                        onClick={decreaseQty}
+                        className="size-9 inline-flex items-center justify-center tracking-wide align-middle text-base text-center rounded-md bg-orange-500/5 hover:bg-orange-500 text-orange-500 hover:text-white minus"><Minus size={18} /></button>
+                      <input
+                        type="number"
+                        min={1}
+                        name="quantity"
+                        className="h-9 inline-flex items-center justify-center tracking-wide align-middle text-base text-center rounded-md bg-orange-500/5 hover:bg-orange-500 text-orange-500 hover:text-white pointer-events-none w-16 ps-4 quantity"
+                        value={quantity}
+                        readOnly
+                      />
+                      <button
+                        type="button"
+                        onClick={increaseQty}
+                        className="size-9 inline-flex items-center justify-center tracking-wide align-middle text-base text-center rounded-md bg-orange-500/5 hover:bg-orange-500 text-orange-500 hover:text-white plus">
+                        <Plus size={18} />
+                      </button>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="mt-4 space-x-1">
+                  <a href="#" className="py-2 px-5 inline-block font-semibold tracking-wide align-middle text-base text-center bg-orange-500 text-white rounded-md mt-2">Shop Now</a>
+                  <button onClick={handleAddToCart}
+                    disabled={isPending} className="py-2 px-5 inline-block font-semibold tracking-wide align-middle text-base text-center rounded-md bg-orange-500/5 hover:bg-orange-500 text-orange-500 hover:text-white mt-2"> {isPending ? "Adding..." : "Add to Cart"}</button>
+                </div>
+                {/* {isSuccess && (
+                  <div className="mt-3 text-sm text-green-600">
+                    ✅ Added {quantity} item{quantity > 1 ? "s" : ""} to cart.
+                  </div>
+                )} */}
+              </div>
+            </div>
+
+            <ProductTabs book={book} />
+          </div>
+
+          <div className="container lg:mt-24 mt-16">
+            <div className="grid grid-cols-1 mb-6 text-center">
+              <h3 className="font-semibold text-3xl leading-normal">New Books</h3>
+            </div>
+
+            <div className="grid lg:grid-cols-4 md:grid-cols-3 sm:grid-cols-2 grid-cols-1 gap-6 pt-6">
+              {newbooks.length > 0 ? (
+                newbooks.map((newbook, index) => (
+                  <Book key={newbook.id ?? `newbook-${index}`} product={newbook} />
+                ))
+              ) : (
+                <div className="col-span-full text-center py-8">
+                  <p className="text-lg">No books found.</p>
+                </div>
+              )}
+            </div>
+          </div>
+        </section>
+      </FrontendLayout>
+    </>
+  );
 }

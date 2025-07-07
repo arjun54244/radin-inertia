@@ -1,10 +1,10 @@
-export default function YouTubeSection({ videoIds }: { videoIds: string[] }) {
+export default function YouTubeSection({ videoIds, title }: { videoIds: string[], title?: string }) {
   if (!videoIds.length) return null;
 
   return (
-    <div className="py-14 px-4 sm:px-6 lg:px-10 bg-gray-50">
+    <div className="py-6 px-4 sm:px-6 lg:px-10 bg-gray-50">
       <h2 className="text-3xl font-extrabold text-center text-gray-800 mb-10">
-         Watch Our Videos
+        {title || "YouTube Videos"}
       </h2>
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
         {videoIds.map((id) => (

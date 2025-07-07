@@ -1,6 +1,7 @@
 import Footer from '@/components/frontend/Footer';
 import Nav from '@/components/frontend/Nav';
 import Providers from '@/components/frontend/Providers';
+import StickySocialButtons from '@/components/frontend/StickySocialButtons';
 import AppLayoutTemplate from '@/layouts/app/app-sidebar-layout';
 import { type BreadcrumbItem } from '@/types';
 import { type ReactNode } from 'react';
@@ -18,6 +19,7 @@ export default ({ children, breadcrumbs, ...props }: AppLayoutProps) => (
               {/* Move Nav inside AuthProvider */}
               <Nav />
               {children}
+              <StickySocialButtons />
               <Footer />
             {/* </AuthProvider>
           </AuthKitProvider> */}

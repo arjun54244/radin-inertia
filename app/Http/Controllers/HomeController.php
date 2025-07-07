@@ -78,9 +78,17 @@ class HomeController extends Controller
 
         // youtube
         $youtubeVideoIds = \App\Models\YouTube::where('is_active', true)
-            ->pluck('video_id')
+        ->where('type', 'review')
+            ->where('is_active', true)    
+        ->pluck('video_id')
             ->toArray();
             // dd($youtubeVideoIds);
+
+        $youtubeMensa = \App\Models\YouTube::where('is_active', true)
+            ->where('type', 'homevideo')
+            ->where('is_active', true)
+            ->pluck('video_id')
+            ->toArray();
 
         return Inertia::render('home', [
             'banners' => $banners,
@@ -92,6 +100,7 @@ class HomeController extends Controller
             'latestBooks' => $tergetLatestBooks,
             'latestBooksArray' => $latestBooksArray,
             'youtubeVideoIds' => $youtubeVideoIds,
+            'youtubeMensa' => $youtubeMensa,
         ]);
     }
 }

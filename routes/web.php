@@ -1,9 +1,12 @@
 <?php
 
+use App\Http\Controllers\AboutController;
+use App\Http\Controllers\AIController;
 use App\Http\Controllers\BannerController;
 use App\Http\Controllers\BlogController;
 use App\Http\Controllers\CartController;
 use App\Http\Controllers\CategoryController;
+use App\Http\Controllers\ContactController;
 use App\Http\Controllers\CorrentafferController;
 use App\Http\Controllers\OrderController;
 use App\Http\Controllers\ProductController;
@@ -26,12 +29,13 @@ Route::middleware([
 });
 
 Route::get('/', [HomeController::class, 'index'])->name('home');
-Route::inertia('/about', 'about')->name('about');
+Route::get('/about', [AboutController::class, 'index'])->name('about.index');
 Route::get('/terms/{slug}', [TermController::class, 'show'])->name('terms');
 Route::resource('/current-affairs', CorrentafferController::class);
 Route::inertia('/contact', 'contact')->name('contact');
 Route::resource('/books', ProductController::class);
 // Route::inertia('/terms', 'terms/terms')->name('terms');
+Route::post('/ai/recommend', [AIController::class, 'recommend'])->middleware(['web']);
 
 
 Route::get('/info', [InfoPageController::class, 'index']);
@@ -56,6 +60,8 @@ Route::get('/products/{slug}', [ProductController::class, 'show']);
 Route::get('/categories', [CategoryController::class, 'index']);
 Route::get('/categories/{slug}', [CategoryController::class, 'show']);
 
+Route::post('/contact', [ContactController::class, 'store'])->name('contact.store');
+
 // Order Routes
 Route::middleware('auth:sanctum')->group(function () {
     Route::get('/v1/orders', [OrderController::class, 'index']);
@@ -63,15 +69,24 @@ Route::middleware('auth:sanctum')->group(function () {
 });
 
 // Cart Routes
-// Route::middleware('auth:sanctum')->group(function () {
-    // Route::get('/cart', [CartController::class, 'index']);
-    // Route::post('/cart/add/{product}', [CartController::class, 'addItem']);
-    // Route::put('/cart/update/{product}', [CartController::class, 'updateItem']);
-    // Route::delete('/cart/remove/{product}', [CartController::class, 'removeItem']);
-    // Route::delete('/cart/clear', [CartController::class, 'clear']);
-// });
+Route::controller(CartController::class)->group(function () {
+    Route::get('/cart', 'index')->name('cart.index');
+    Route::post('/cart/add/{product}', 'store')->name('cart.store');
+    Route::put('/cart/{product}', 'update')->name('cart.update');
+    Route::delete('/cart/{product}', 'destroy')->name('cart.delete');
+    Route::get('/cart/view',  'getCart')->name('cart.view');
+});
+
+Route::get('/thankyou', function(){
+    return Inertia('Orders/thankyou');
+})->name('thankyou');
+Route::get('/checkout', function(){
+    return Inertia('Orders/checkout');
+})->name('checkout');
+
+Route::inertia('/invoice', 'Orders/invoice')->name('invoice');
 //404 Route
-Route::fallback( function (){
+Route::fallback(function () {
     return Inertia::render('notfound');
 });
 

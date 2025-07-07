@@ -43,6 +43,7 @@ interface HomeProps {
     [key: string]: Product[]
   }
   youtubeVideoIds: string[];
+  youtubeMensa: string[];
 }
 
 
@@ -55,7 +56,8 @@ export default function Home({
   categoryBooksShopByState,
   latestBooks,
   latestBooksArray,
-  youtubeVideoIds
+  youtubeVideoIds,
+  youtubeMensa,
 }: HomeProps) {
 
   return (
@@ -67,13 +69,14 @@ export default function Home({
           <BannerSlider banners={banners} interval={5000} pauseOnHover={true} />
         </section>
 
-
-
         <ShopByCategory categories={categoriesShopByCategories} categoryBooks={categoryBooksShopByCategories}
           header="Shop By Categories"
         />
-        <section className="my-24">
-          <div className="container mx-auto px-4">
+        <YouTubeSection title="Watch Our Videos"  videoIds={youtubeVideoIds} />
+        <ShopByCategory categories={categoriesShopByState} categoryBooks={categoryBooksShopByState} header='Shop By State' />
+         <TestimonialsCards title='Student Reviews' tagline="" testimonials={testimonials} />
+        <section className="my-6">
+          <div className="mx-auto px-4">
             <div className="w-full">
               <div className="relative">
                 <Link href="/category/JNV-Sainik-RMS">
@@ -83,29 +86,17 @@ export default function Home({
                     className="w-full rounded-lg shadow-md"
                   />
                 </Link>
-
-                {/* Uncomment if you want to show the text overlay */}
-                {/*
-                        <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 text-center text-white">
-                            <h3 className="text-xl md:text-2xl font-semibold">JNV-SAINIK-RMS Books</h3>
-                            <h2 className="text-2xl md:text-4xl font-bold">Sale up to 20% off</h2>
-                        </div>
-                        */}
               </div>
             </div>
           </div>
         </section>
-        <TestimonialsCards testimonials={testimonials} />
-
-        <ShopByCategory categories={categoriesShopByState} categoryBooks={categoryBooksShopByState} header='Shop By State' />
-
-        <YouTubeSection videoIds={youtubeVideoIds} />
-
+       
         <ShopByCategory categories={latestBooks} categoryBooks={latestBooksArray} header='Shop By popular books' />
 
-        <section className="relative md:py-24 py-16">
+        <YouTubeSection title="Popular Videos" videoIds={youtubeMensa} />
 
-          <div className="container-fluid relative md:mt-24 mt-16">
+        <section className="relative md:py-16 py-6">
+          <div className="container-fluid relative md:mt-16 mt-8">
             <div className="grid grid-cols-1">
               <div className="relative overflow-hidden py-24 px-4 md:px-10 bg-orange-600 bg-center bg-no-repeat bg-cover" style={{ backgroundImage: "url('/assets\images\hero\bg3.png')" }}
               >
@@ -131,9 +122,7 @@ export default function Home({
 
         </section>
 
-        <ShopByCategory categories={latestBooks} categoryBooks={latestBooksArray} header='Shop By popular books' />
-
-        <section className="bg-gray-50 py-24">
+        <section className="bg-gray-50 py-6">
           <div className="container mx-auto px-4">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div className="transition-transform hover:scale-105 shadow-md rounded-lg">

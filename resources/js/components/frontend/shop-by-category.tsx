@@ -29,9 +29,9 @@ export default function ShopByCategory({ categories, categoryBooks, header }: Sh
     :  categoryBooks[activeCategory]?.slice(0, 4)  || []
 
   return (
-    <section className="py-16 bg-gray-50">
+    <section className="py-6 bg-gray-50">
       <div className="container mx-auto px-4">
-        <div className="text-center mb-12">
+        <div className="text-center mb-6">
           <h2 className="text-3xl font-bold">{header ? header : "Shop"}</h2>
         </div>
 
