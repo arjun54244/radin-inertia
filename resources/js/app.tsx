@@ -27,7 +27,7 @@ createInertiaApp({
             <QueryClientProvider client={queryClient}>
                 <App {...props} />
                 <ToastContainer position="top-right" autoClose={3000} hideProgressBar />
-                <ReactQueryDevtools initialIsOpen={false} />
+                <ReactQueryDevtools initialIsOpen={true} />
             </QueryClientProvider>
         );
     },

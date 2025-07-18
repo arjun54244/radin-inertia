@@ -18,6 +18,7 @@ class Address extends Model
         'zip_code',
         'country',
         'phone',
+        'is_default',
     ];
 
     public function user()

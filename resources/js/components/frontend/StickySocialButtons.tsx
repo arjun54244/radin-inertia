@@ -8,19 +8,23 @@ import {
   FaLinkedin,
   FaShareAlt,
 } from "react-icons/fa";
+import BackToTopButton from "./BackToTopButton";
+import { InfoPage } from '@/types';
 
-const socialLinks = [
-  { icon: <FaFacebook />, url: "https://facebook.com", label: "Facebook" },
-  { icon: <FaInstagram />, url: "https://instagram.com", label: "Instagram" },
-  { icon: <FaYoutube />, url: "https://youtube.com", label: "YouTube" },
-  { icon: <FaLinkedin />, url: "https://linkedin.com", label: "LinkedIn" },
-];
 
-export default function FloatingContactButtons() {
+
+export default function FloatingContactButtons({ data }: { data: InfoPage }) {
+  const socialLinks = [
+    { icon: <FaFacebook />, url: data.facebook, label: "Facebook" },
+    { icon: <FaInstagram />, url: data.instagram, label: "Instagram" },
+    { icon: <FaYoutube />, url: data.youtube, label: "YouTube" },
+    { icon: <FaLinkedin />, url: data.linkedin, label: "LinkedIn" },
+  ];
   const [showSocials, setShowSocials] = useState(false);
 
   return (
     <div className="fixed bottom-4 right-4 flex flex-col items-end space-y-3 z-50">
+
       {/* Toggle Social Media */}
       {showSocials &&
         socialLinks.map((social, index) => (
@@ -47,7 +51,7 @@ export default function FloatingContactButtons() {
 
       {/* WhatsApp */}
       <a
-        href="https://wa.me/919999999999"
+        href={`https://wa.me/${data.phones[0].number}`}
         target="_blank"
         rel="noopener noreferrer"
         className="flex items-center cursor-pointer justify-center w-12 h-12 rounded-full bg-green-500 text-white hover:bg-green-600 shadow-md transition-all"
@@ -58,12 +62,17 @@ export default function FloatingContactButtons() {
 
       {/* Call */}
       <a
-        href="tel:+919999999999"
+        href={`tel:${data.phones[0].number}`}
         className="flex items-center cursor-pointer justify-center w-12 h-12 rounded-full bg-blue-400 text-white hover:bg-blue-500 shadow-md transition-all"
         title="Call Us"
       >
         <FaPhone />
       </a>
+      <div className="flex items-center cursor-pointer justify-center w-12 h-12 rounded-full transition-all"
+      >
+        <BackToTopButton />
+      </div>
+
     </div>
   );
 }

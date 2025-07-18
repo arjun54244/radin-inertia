@@ -20,6 +20,8 @@ return new class extends Migration
             $table->decimal('total_price', 10, 2);
             $table->enum('status', ['pending', 'processing', 'completed', 'declined'])
                 ->default('pending');
+            $table->enum('payment_method', ['cod', 'online'])
+                ->default('pending');
             $table->decimal('shipping_price')->nullable();
             $table->longText('notes');
             $table->softDeletes();

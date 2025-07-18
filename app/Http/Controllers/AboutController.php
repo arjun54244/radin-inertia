@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Author;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Cache;
 
 class AboutController extends Controller
 {
@@ -12,7 +13,12 @@ class AboutController extends Controller
      */
     public function index()
     {
-        $teams = Author::where('status', true)->Where('member', true)->get();
+        $teams = Cache::remember('active_team_members', env('CACHE_TIMEOUT'), function () {
+            return Author::where('status', true)
+                ->where('member', true)
+                ->get();
+        });
+
         return inertia('about', [
             'teams' => $teams,
         ]);

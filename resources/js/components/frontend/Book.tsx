@@ -1,14 +1,17 @@
 import { useEffect, useState } from "react";
 import { Bookmark, Eye, Heart, Star } from "lucide-react";
-import { Link } from "@inertiajs/react";
+import { Link, usePage } from "@inertiajs/react";
 import { useCart } from "@/hooks/useCart";
 import { Product } from "@/types/books";
-
+import { useForm } from '@inertiajs/react';
+import { toast } from "react-toastify";
+import axios from "axios";
 interface BookProps {
   product: Product;
+  isAuthenticated: boolean;
 }
 
-export default function Book({ product }: BookProps) {
+export default function Book({ product, isAuthenticated }: BookProps) {
   const { data: cartData, isAdding, isLoading, addToCart, isLoading: cartLoading } = useCart();
   const [quantity, setQuantity] = useState(1);
   const [totalQuantity, setTotalQuantity] = useState(1);
@@ -73,9 +76,11 @@ export default function Book({ product }: BookProps) {
           -{discountPercentage}% Off
         </div>
 
-        <div className="absolute top-3 right-3 space-y-2 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-          <ul className="list-none absolute top-[10px] end-4 opacity-0 group-hover:opacity-100 duration-500 space-y-1">
-            <li><a href="javascript:void(0)" className="size-10 inline-flex items-center justify-center tracking-wide align-middle duration-500 text-center rounded-full bg-white text-slate-900 hover:bg-slate-900 hover:text-white shadow"><Heart size={16} /></a></li>
+        <div className="absolute top-3 right-3 space-y-2 opacity-100 group-hover:opacity-100 transition-opacity duration-300">
+          <ul className="list-none absolute top-[10px] end-4 opacity-100 group-hover:opacity-100 duration-500 space-y-1">
+           { isAuthenticated && (
+            <LikeButton productId={product.id} initialLiked={Boolean(product.is_liked)} initialLikes={0} />
+            )}
             <li className="mt-1"><Link
               href={`/books/${product.slug}`} className="size-10 inline-flex items-center justify-center tracking-wide align-middle duration-500 text-center rounded-full bg-white text-slate-900 hover:bg-slate-900 hover:text-white shadow"> <Eye size={16} /></Link></li>
           </ul>
@@ -90,7 +95,7 @@ export default function Book({ product }: BookProps) {
           {product.name.split(" ").slice(0, 8).join(" ") + "..."}
         </Link>
 
-        <div className="flex items-center justify-between w-full px-4 mb-0">
+        <div className="flex lg:flex-row md:flex-col sm:flex-col items-stretch items-center justify-between w-full gap-2 px-4 mb-0">
           <input
             type="number"
             min="1"
@@ -106,6 +111,7 @@ export default function Book({ product }: BookProps) {
             {isAdding || cartLoading ? "Adding..." : "Add to Cart"}
           </button>
         </div>
+
 
         <div className="flex items-center justify-between mt-1">
           <div className="text-base font-semibold text-orange-600">
@@ -126,5 +132,48 @@ export default function Book({ product }: BookProps) {
         </p>
       </div>
     </div>
+  );
+}
+
+interface LikeButtonProps {
+  productId: number;
+  initialLiked: boolean;
+  initialLikes: number;
+}
+
+export function LikeButton({ productId, initialLiked, initialLikes }: LikeButtonProps) {
+  const [liked, setLiked] = useState(initialLiked|| false);
+  const [likesCount, setLikesCount] = useState(initialLikes);
+  const [loading, setLoading] = useState(false);
+
+  const handleLikeToggle = async () => {
+    setLoading(true);
+
+    try {
+      const res = await axios.post(`/products/${productId}/like`);
+
+      setLiked(res.data.liked);
+      setLikesCount(res.data.likes_count);
+
+      toast.success(res.data.liked ? 'Added to favourites' : 'Removed from favourites');
+    } catch (error) {
+      toast.error('Failed to update like status');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <li>
+      <button
+        onClick={handleLikeToggle}
+        disabled={loading}
+        className={`size-10 inline-flex items-center justify-center tracking-wide align-middle duration-500 text-center rounded-full shadow 
+          ${liked ? 'bg-orange-400 text-white' : 'bg-white text-slate-900 hover:bg-slate-900 hover:text-white'} 
+          ${loading ? 'opacity-50 cursor-not-allowed' : ''}`}
+      >
+        <Heart size={16} />
+      </button>
+    </li>
   );
 }

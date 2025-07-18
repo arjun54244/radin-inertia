@@ -16,6 +16,7 @@ class Order extends Model
         'user_id',
         'number',
         'total_price',
+        'payment_method',
         'status',
         'shipping_price',
         'notes'

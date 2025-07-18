@@ -9,9 +9,10 @@ interface ShopByCategoryProps {
   categories: string[]
   categoryBooks: { [key: string]: Product[] }
   header?: string
+  isAuthenticated?: boolean
 }
 
-export default function ShopByCategory({ categories, categoryBooks, header }: ShopByCategoryProps) {
+export default function ShopByCategory({ categories, categoryBooks, header, isAuthenticated }: ShopByCategoryProps) {
   const [activeCategory, setActiveCategory] = useState(categories[0] || "")
   const [showAll, setShowAll] = useState(false)
 
@@ -54,7 +55,7 @@ export default function ShopByCategory({ categories, categoryBooks, header }: Sh
         {/* Books Grid */}
         <div className="grid grid-cols-1 sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
           {booksToDisplay.map((book) => (
-            <Book key={book.id} product={book} />
+            <Book key={book.id} product={book} isAuthenticated={Boolean(isAuthenticated)} />
           ))}
         </div>
 

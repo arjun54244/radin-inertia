@@ -6,9 +6,11 @@ use App\Models\Banner;
 use App\Models\Category;
 use App\Models\Product;
 use App\Models\Testimonial;
+use App\Models\YouTube;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\Cache;
 use Inertia\Inertia;
 
 
@@ -16,79 +18,81 @@ class HomeController extends Controller
 {
     public function index()
     {
-        $banners = Banner::where('title', 'home')->get()->map(function ($banner) {
-            $banner->images = collect($banner->images)->map(function ($image) {
-                return Storage::url($image); // Converts 'banners/banner1.jpg' → '/storage/banners/banner1.jpg'
+        $timeout = env('CACHE_TIMEOUT');
+
+        // Banners
+        $banners = Cache::remember('home_banners', $timeout, function () {
+            return Banner::where('title', 'home')->get()->map(function ($banner) {
+                $banner->images = collect($banner->images)->map(fn($image) => Storage::url($image));
+                return $banner;
             });
-            return $banner;
         });
 
-        $testimonials = Testimonial::where('is_active', true)->get()->map(function ($testimonial) {
-            $testimonial->image = $testimonial->image ? Storage::url($testimonial->image) : null;
-            return $testimonial;
+        // Testimonials
+        $testimonials = Cache::remember('home_testimonials', $timeout, function () {
+            return Testimonial::where('is_active', true)->get()->map(function ($testimonial) {
+                $testimonial->image = $testimonial->image ? Storage::url($testimonial->image) : null;
+                return $testimonial;
+            });
         });
 
-        //Shop By Category
+        // Target categories
         $targetCategories = [
             "JNV-Sainik-RMS",
             "Books-All-Competitions",
             "SSC-Exams",
             "Defence",
             "Railway-Exams",
-            "CUET-Exams",
+            "CUET-Exams"
         ];
 
-        // Get the matching categories by name
-        $categories = Category::whereIn('name', $targetCategories)->get();
+        $categoryBooks = Cache::remember('home_category_books', $timeout, function () use ($targetCategories) {
+            $categories = Category::whereIn('name', $targetCategories)->get();
+            $result = [];
+            foreach ($categories as $category) {
+                $result[$category->name] = Product::whereJsonContains('categories', [['category_id' => (string)$category->id]])->get();
+            }
+            return $result;
+        });
 
-        $categoryBooks = [];
-
-        foreach ($categories as $category) {
-            $name = $category->name;
-            $categoryId = $category->id;
-
-            // Search for products where JSON 'categories' includes an object with matching category_id
-            $products = Product::whereJsonContains('categories', [['category_id' => (string) $categoryId]])
-                ->get();
-
-            $categoryBooks[$name] = $products;
-        }
-
-        //Shop By State
+        // State categories
         $targetState = ["UP", "Haryana", "Bihar", "Rajasthan", "MP", "Delhi", "Uttarakhand"];
-        $states = Category::whereIn('name', $targetState)->get();
-        $stateBooks = [];
-        foreach ($states as $state) {
-            $name = $state->name;
-            $categoryId = $state->id;
-            $products = Product::whereJsonContains('categories', [['category_id' => (string) $categoryId]])->get();
-            $stateBooks[$name] = $products;
-        }
 
-        // Shop By popular books 
+        $stateBooks = Cache::remember('home_state_books', $timeout, function () use ($targetState) {
+            $states = Category::whereIn('name', $targetState)->get();
+            $result = [];
+            foreach ($states as $state) {
+                $result[$state->name] = Product::whereJsonContains('categories', [['category_id' => (string)$state->id]])->get();
+            }
+            return $result;
+        });
+
+        // Popular/latest books
         $tergetLatestBooks = ["Best Seller", "Latest Release", "Most Purchased", "On Sale"];
-        $latestBooks = Category::whereIn('name', $tergetLatestBooks)->get();
-        $latestBooksArray = [];
-        foreach ($latestBooks as $book) {
-            $name = $book->name;
-            $categoryId = $book->id;
-            $products = Product::whereJsonContains('categories', [['category_id' => (string) $categoryId]])->get();
-            $latestBooksArray[$name] = $products;
-        }
 
-        // youtube
-        $youtubeVideoIds = \App\Models\YouTube::where('is_active', true)
-        ->where('type', 'review')
-            ->where('is_active', true)    
-        ->pluck('video_id')
-            ->toArray();
-            // dd($youtubeVideoIds);
+        $latestBooksArray = Cache::remember('home_latest_books', $timeout, function () use ($tergetLatestBooks) {
+            $books = Category::whereIn('name', $tergetLatestBooks)->get();
+            $result = [];
+            foreach ($books as $book) {
+                $result[$book->name] = Product::whereJsonContains('categories', [['category_id' => (string)$book->id]])->get();
+            }
+            return $result;
+        });
 
-        $youtubeMensa = \App\Models\YouTube::where('is_active', true)
-            ->where('type', 'homevideo')
-            ->where('is_active', true)
-            ->pluck('video_id')
-            ->toArray();
+        // YouTube video IDs
+        $youtubeVideoIds = Cache::remember('home_youtube_reviews', $timeout, function () {
+            return YouTube::where('is_active', true)
+                ->where('type', 'review')
+                ->pluck('video_id')
+                ->toArray();
+        });
+
+        $youtubeMensa = Cache::remember('home_youtube_homevideos', $timeout, function () {
+            return YouTube::where('is_active', true)
+                ->where('type', 'homevideo')
+                ->pluck('video_id')
+                ->toArray();
+        });
 
         return Inertia::render('home', [
             'banners' => $banners,

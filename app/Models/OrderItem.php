@@ -15,6 +15,10 @@ class OrderItem extends Model
         'quantity',
         'unit_price'
     ];
+    public function product()
+    {
+        return $this->belongsTo(Product::class);
+    }
     public function order()
     {
         return $this->belongsTo(Order::class);
@@ -29,5 +33,4 @@ class OrderItem extends Model
             $item->order->updateTotalPrice();
         });
     }
-
 }

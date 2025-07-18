@@ -7,6 +7,7 @@ import { SharedData } from "@/types";
 import { useMobileNavigation } from "@/hooks/use-mobile-navigation";
 import axios from "axios";
 import clsx from "clsx";
+import GoogleTranslateSelector from "./GoogleTranslateSelector";
 
 
 export default function Nav() {
@@ -72,7 +73,7 @@ export default function Nav() {
                 </div>
             </div>
 
-            <nav id="topnav" className="defaultscroll is-sticky tagline-height">
+            <nav id="topnav" className="defaultscroll is-sticky tagline-height" style={{ fontFamily: "Rufina, serif"}}>
                 <div className="mx-auto md:px-12 px-4  relative">
                     <Link className="logo" href="/">
                         <div>
@@ -94,6 +95,7 @@ export default function Nav() {
                     </div>
 
                     <ul className="buy-button list-none mt-5 flex items-center gap-2">
+                         {/* <GoogleTranslateSelector /> */}
                         {/* Search Button */}
 
                         <ProductSearchDropdown />
@@ -102,11 +104,11 @@ export default function Nav() {
                         <CartDropdown />
 
                         {/* Wishlist Button */}
-                        {/* <li className="inline-block ps-0.5">
-                            <button className="size-9 inline-flex items-center justify-center tracking-wide align-middle duration-500 text-base text-center rounded-full bg-orange-500 text-white">
+                        <li className="inline-block ps-0.5">
+                            <Link href="/account/account" className="size-9 inline-flex items-center justify-center tracking-wide align-middle duration-500 text-base text-center rounded-full bg-orange-500 text-white">
                                 <Heart className="w-4 h-4" />
-                            </button>
-                        </li> */}
+                            </Link>
+                        </li>
                         {/* User Menu */}
                         <UserMenu />
                     </ul>
@@ -326,13 +328,9 @@ export function UserMenu() {
                     <div className="absolute right-0 mt-2 w-48 bg-white dark:bg-slate-900 shadow-md p-2 rounded-md z-50" ref={dropdownRef}>
                         <ul>
                             <li className="py-2 px-4 text-sm">Welcome, {auth.user.name}!</li>
-                            <li className="py-2 px-4 flex items-center text-sm">
-                                <DollarSign className="w-4 h-4 mr-2" />
-                                Balance: <span className="text-orange-500 ml-2">₹0.00</span>
-                            </li>
                             <li className="py-2 px-4 flex items-center cursor-pointer hover:text-orange-500 text-sm">
                                 <User className="w-4 h-4 mr-2" />
-                                <Link href="/account">Account</Link>
+                                <Link href="/account/account">Account</Link>
                             </li>
                             <li className="py-2 px-4 flex items-center cursor-pointer hover:text-orange-500 text-sm">
                                 <HelpCircle className="w-4 h-4 mr-2" />

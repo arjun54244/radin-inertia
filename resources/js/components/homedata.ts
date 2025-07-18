@@ -1,4 +1,3 @@
-  export const categoriesShopByCategories = ["JNV-Sainik-RMS", "Books-All-Competitions", "SSC-Exams", "Defence", "Railway-Exams", "CUET-Exams"]
 
   export const categoryBooksShopByCategories = {
     "JNV-Sainik-RMS": [
@@ -320,4 +319,3 @@
     { id: "2", title: "Highly Recommended!", youtubeUrl: "https://www.youtube.com/watch?v=JVe4GrAVBRU" },
   ];
 
-  export const categoriesShopByState = ["UP", "Haryana", "Bihar", "Rajasthan", "MP", "Delhi", "Uttarakhand"]

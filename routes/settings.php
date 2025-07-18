@@ -1,5 +1,9 @@
 <?php
 
+use App\Http\Controllers\Account\AccountController;
+use App\Http\Controllers\Account\AddressController;
+use App\Http\Controllers\Account\BillController;
+use App\Http\Controllers\Account\SettingController;
 use App\Http\Controllers\Settings\PasswordController;
 use App\Http\Controllers\Settings\ProfileController;
 use Illuminate\Support\Facades\Route;
@@ -19,4 +23,21 @@ Route::middleware([
     Route::get('settings/appearance', function () {
         return Inertia::render('settings/appearance');
     })->name('appearance');
+});
+//frontend settings routes
+Route::middleware([
+    'auth',
+    ValidateSessionWithWorkOS::class,
+])->prefix('account')->group(function () {
+    Route::resource('account', AccountController::class);
+    Route::resource('billing', BillController::class);
+    Route::get('setting', [SettingController::class, 'index'])->name('setting.index');
+    Route::patch('setting', [SettingController::class, 'update'])->name('setting.update');
+    Route::delete('setting', [SettingController::class, 'destroy'])->name('setting.destroy');
+});
+
+// address routes
+Route::middleware(['auth'])->prefix('account')->group(function () {
+    Route::post('/addresses/{id}', [AddressController::class, 'storeOrUpdate'])->name('addresses.save');
+    Route::delete('/addresses/{id}', [AddressController::class, 'destroy'])->name('addresses.delete');
 });

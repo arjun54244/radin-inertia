@@ -21,6 +21,8 @@ class CorrentafferResource extends Resource
     protected static ?string $model = Correntaffer::class;
 
     protected static ?string $navigationIcon = 'heroicon-o-rectangle-stack';
+    //lable
+    protected static ?string $navigationLabel = 'Current Affairs';
 
     public static function form(Form $form): Form
     {
@@ -34,6 +36,7 @@ class CorrentafferResource extends Resource
                                     ->label('English PDF')
                                     ->helperText('Upload the PDF in English.')
                                     ->uploadingMessage('Uploading English PDF...')
+                                    ->maxSize(1024 * 1024 * 3) // 3MB
                                     ->required()
                                     ->visibility('public')
                                     ->directory('CurrentAffairs')
@@ -46,6 +49,7 @@ class CorrentafferResource extends Resource
                                     ->label('Hindi PDF')
                                     ->helperText('Upload the PDF in Hindi.')
                                     ->uploadingMessage('Uploading Hindi PDF...')
+                                    ->maxSize(1024 * 1024 * 3) // 3MB
                                     ->required()
                                     ->visibility('public')
                                     ->directory('CurrentAffairs')

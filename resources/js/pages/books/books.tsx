@@ -1,8 +1,10 @@
 import { Product } from "@/types/books";
 import Sidebar from "./Sidebar";
 import Book from "@/components/frontend/Book";
-import { Head } from '@inertiajs/react';
+import { Head, usePage, router } from '@inertiajs/react';
 import FrontendLayout from "@/layouts/frontend-layout";
+import { useState } from "react";
+import { SharedData } from "@/types";
 
 
 
@@ -12,6 +14,11 @@ interface BooksPageProps {
 }
 
 export default function BooksPage({ books }: BooksPageProps) {
+    const { auth } = usePage<SharedData>().props;
+    const [isAuthenticated, setIsAuthenticated] = useState(!!auth.user);
+    const [from, setFrom] = useState(books.length > 0 ? books[0].id : 0);
+    const [to, setTo] = useState(books.length > 0 ? books[books.length - 1].id : 0);
+    const [total, setTotal] = useState(books.length);
     return (
         <>
             <FrontendLayout>
@@ -31,16 +38,18 @@ export default function BooksPage({ books }: BooksPageProps) {
                         </div>
                     </div>
                 </div>
-                <div className="relative md:py-24 py-16">
-                    <div className="w-full px-40 sm:px-6 lg:px-8 relative">
+                <div className="relative md:py-16 py-8">
+                    <div className="w-full mx-auto px-6 relative">
                         <div className="grid md:grid-cols-12 sm:grid-cols-2 grid-cols-1 gap-6">
-                            <Sidebar />
-                            <div className="lg:col-span-9 md:col-span-8">
-                                <ManuCenter />
-                                <div className="grid lg:grid-cols-4 sm:grid-cols-3 md:grid-cols-2 grid-cols-1 gap-6">
+                            <div className="lg:col-span-3 md:col-span-3">
+                                <Sidebar />
+                            </div>
+                            <div className="lg:col-span-9 md:col-span-9">
+                                <ManuCenter from={from} to={to} total={total} />
+                                <div className="grid xl:grid-cols-5 lg:grid-cols-4 md:grid-cols-3 sm:grid-cols-2 grid-cols-1 gap-6">
                                     {books.length > 0 ? (
                                         books.map((book) => (
-                                            <Book key={book.id} product={book} />
+                                            <Book key={book.id} isAuthenticated={Boolean(isAuthenticated)} product={book} />
                                         ))
                                     ) : (
                                         <div className="col-span-full text-center py-8">
@@ -93,23 +102,50 @@ export default function BooksPage({ books }: BooksPageProps) {
 
 
 
-export function ManuCenter() {
+export function ManuCenter({ from, to, total }: { from: number, to: number, total: number }) {
+    const { props } = usePage();
+    const books = props.books;
+    const searchParams = new URLSearchParams(location.search);
+    const currentSort = searchParams.get('sort') || '';
+
+    const handleSortChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+        const newSort = e.target.value;
+
+        const updatedParams = new URLSearchParams(location.search);
+        if (newSort) {
+            updatedParams.set('sort', newSort);
+        } else {
+            updatedParams.delete('sort');
+        }
+
+        router.get(`${route('books.index')}?${updatedParams.toString()}`, {}, {
+            preserveScroll: true,
+            preserveState: true,
+        });
+    };
+
     return (
         <div className="md:flex justify-between items-center mb-6">
-            <span className="font-semibold">Showing 1-16 of 40 items</span>
+            <span className="font-semibold">
+                Showing {from}–{to} of {total} items
+            </span>
 
             <div className="md:flex items-center">
                 <label className="font-semibold md:me-2">Sort by:</label>
-                <select className="form-select form-input md:w-36 w-full md:mt-0 mt-1 py-2 px-3 h-10 bg-transparent dark:bg-slate-900 dark:text-slate-200 rounded outline-none border border-gray-100 dark:border-gray-800 focus:ring-0">
-                    <option value="">Featured</option>
-                    <option value="">Sale</option>
-                    <option value="">Alfa A-Z</option>
-                    <option value="">Alfa Z-A</option>
-                    <option value="">Price Low-High</option>
-                    <option value="">Price High-Low</option>
+                <select
+                    value={currentSort}
+                    onChange={handleSortChange}
+                    className="form-select form-input md:w-36 w-full md:mt-0 mt-1 py-2 px-3 h-10 bg-transparent dark:bg-slate-900 dark:text-slate-200 rounded outline-none border border-gray-100 dark:border-gray-800 focus:ring-0"
+                >
+                    {/* <option value="">Featured</option>
+                    <option value="sale">Sale</option> */}
+                    <option value="az">Alfa A-Z</option>
+                    <option value="za">Alfa Z-A</option>
+                    <option value="low-high">Price Low-High</option>
+                    <option value="high-low">Price High-Low</option>
                 </select>
             </div>
         </div>
-    )
-
+    );
 }
+

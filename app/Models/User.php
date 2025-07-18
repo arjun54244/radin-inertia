@@ -52,13 +52,23 @@ class User extends Authenticatable
     }
     public function addresses()
     {
-        return $this->hasOne(Address::class);
+        return $this->hasMany(Address::class);
     }
 
     public function comments()
     {
         return $this->hasMany(Comment::class);
     }
+    public function likedProducts()
+    {
+        return $this->belongsToMany(Product::class, 'likes')->withTimestamps();
+    }
+
+    public function hasLiked(Product $product): bool
+    {
+        return $this->likedProducts()->where('product_id', $product->id)->exists();
+    }
+
 
     public function cart()
     {

@@ -74,6 +74,7 @@ export interface Product {
   categories: { category_id: string; sequence: string }[]; // Parsed from JSON
   created_at: string;
   updated_at: string;
+  is_liked?: string | boolean; // Optional field for liked status
   author?: {
     id: number;
     name: string;

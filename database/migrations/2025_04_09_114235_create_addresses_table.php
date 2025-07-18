@@ -1,4 +1,4 @@
-http://localhost:8000/http://localhost:8000/<?php
+<?php
 
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
@@ -19,7 +19,8 @@ return new class extends Migration {
             $table->string('state')->nullable();
             $table->string('zip_code')->nullable();
             $table->string('country')->nullable();
-            $table->string('phone')->nullable(); 
+            $table->string('phone')->nullable();
+            $table->boolean('is_default')->default(false);
             $table->timestamps();
         });
     }

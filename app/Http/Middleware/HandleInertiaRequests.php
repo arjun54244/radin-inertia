@@ -2,6 +2,7 @@
 
 namespace App\Http\Middleware;
 
+use App\Models\InfoPage;
 use App\Services\CartService;
 use Illuminate\Foundation\Inspiring;
 use Illuminate\Http\Request;
@@ -42,6 +43,26 @@ class HandleInertiaRequests extends Middleware
 
         $cartService = app(CartService::class);
         $cartCount = $cartService->getCartCount();
+        $infoPages = InfoPage::where('is_active', true)
+            ->select([
+                'id',
+                'title',
+                'slug',
+                'content',
+                'company_name',
+                'email',
+                'phones',
+                'addresses',
+                'website',
+                'facebook',
+                'youtube',
+                'instagram',
+                'linkedin',
+                'map_embed_code',
+                'meta_title',
+                'meta_description',
+            ])
+            ->first();
 
         return [
             ...parent::share($request),
@@ -57,6 +78,7 @@ class HandleInertiaRequests extends Middleware
             'sidebarOpen' => ! $request->hasCookie('sidebar_state') || $request->cookie('sidebar_state') === 'true',
             'cartCount' => $cartCount,
             'cartItems' => $cartService->getCartItems(),
+            'infoPages' => $infoPages,
         ];
     }
 }

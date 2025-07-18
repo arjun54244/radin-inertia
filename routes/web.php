@@ -10,6 +10,7 @@ use App\Http\Controllers\ContactController;
 use App\Http\Controllers\CorrentafferController;
 use App\Http\Controllers\OrderController;
 use App\Http\Controllers\ProductController;
+use App\Http\Controllers\ProductLikeController;
 use App\Http\Controllers\TermController;
 use App\Http\Controllers\TestimonialController;
 use App\Http\Controllers\InfoPageController;
@@ -77,14 +78,22 @@ Route::controller(CartController::class)->group(function () {
     Route::get('/cart/view',  'getCart')->name('cart.view');
 });
 
-Route::get('/thankyou', function(){
-    return Inertia('Orders/thankyou');
-})->name('thankyou');
-Route::get('/checkout', function(){
-    return Inertia('Orders/checkout');
-})->name('checkout');
+// Order Routes
+Route::middleware([
+    'auth',
+    ValidateSessionWithWorkOS::class,
+])->group(function () {
+    Route::get('/thankyou', fn () => Inertia::render('Orders/thankyou'))->name('thankyou');
+    Route::post('/payment/verify', [OrderController::class, 'verifyPayment'])->name('payment.verify');
+    Route::get('/checkout', [OrderController::class, 'index'])->name('checkout.index');
+    Route::post('/checkout', [OrderController::class, 'store'])->name('checkout.store');
+    Route::inertia('/invoice', 'Orders/invoice')->name('invoice');
+});
 
-Route::inertia('/invoice', 'Orders/invoice')->name('invoice');
+//like product routes
+Route::post('/products/{product}/like', [ProductLikeController::class, 'toggle'])->middleware('auth');
+Route::delete('/products/{product}/like', [ProductLikeController::class, 'remove'])->middleware('auth');
+
 //404 Route
 Route::fallback(function () {
     return Inertia::render('notfound');

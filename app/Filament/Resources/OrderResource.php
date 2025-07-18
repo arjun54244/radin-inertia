@@ -62,6 +62,15 @@ class OrderResource extends Resource
                                 ->numeric()
                                 ->required(),
 
+                            // payment method
+                            Forms\Components\Select::make('payment_method')
+                                ->options([
+                                    'cod' => 'Cash on Delivery',
+                                    'online' => 'Online',
+                                ])
+                                ->default('cod')
+                                ->required(),
+
                             Forms\Components\Select::make('status')
                                 ->options([
                                     'pending' => OrderStatusEnum::PENDING->value,
@@ -84,7 +93,7 @@ class OrderResource extends Resource
                                         ->required()
                                         ->reactive()
                                         ->afterStateUpdated(fn($state, Forms\Set $set) =>
-                                            $set('unit_price', Product::find($state)?->price ?? 0)),
+                                        $set('unit_price', Product::find($state)?->price ?? 0)),
 
                                     Forms\Components\TextInput::make('quantity')
                                         ->numeric()
